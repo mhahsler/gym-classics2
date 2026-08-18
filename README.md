@@ -31,6 +31,10 @@ In Colab and Jupyter notebooks, you can add a block with the following code bloc
 !cd gym-classics; pip install -e .
 ```
 
+## Documentation
+
+[Manual pages](/examples/gym_classics_help_pages.ipynb)
+
 ## Examples
 
 ### Using the Standard Gymnasium Interface
@@ -99,4 +103,4 @@ Model for state (0,0) and action up):
  array([0.1, 0.8, 0.1])]
 ```
 
-Look at the [notebook with a detailed code example.](common/gym-classics/examples/4x3_grid_world.ipynb)
+Look at the [notebook with a detailed code example.](examples/4x3_grid_world.ipynb)
