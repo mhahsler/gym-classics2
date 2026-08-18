@@ -1,11 +1,11 @@
-# Heavily Modified Version of Gym Classics
+# gym_classics2: A Heavily Modified Version of Gym Classics
 [![license](https://img.shields.io/badge/license-GPL%20v3.0-blue)](./LICENSE)
 
-Gym Classics is a collection of well-known discrete MDPs from the reinforcement learning
-literature implemented as OpenAI Gym environments originally developed by [Brett Daley](https://github.com/brett-daley/gym-classics).
+`gym_classics2` is a collection of well-known discrete MDPs from the reinforcement learning
+literature implemented as Gymnasium environments originally developed 
+as [gym_classics2](https://github.com/brett-daley/gym-classics) by Brett Daley.
 
-
-This version includes:
+`gym_classics2` includes:
 
 * Updated environments to match Sutton and Barto's definition more closely.
 * Support for maze visualization.
@@ -14,26 +14,12 @@ This version includes:
 
 ## How to install
 
-From the shell: activate the Python environment you want to use and execute the following: 
-
-```
-git clone https://github.com/mhahsler/gym-classics.git
-cd gym-classics
-git pull
-pip install -e .
-```
-
-In Colab and Jupyter notebooks, you can add a block with the following code block:
-
-```
-!git clone https://github.com/mhahsler/gym-classics.git
-!cd gym-classics;git pull
-!cd gym-classics; pip install -e .
-```
+1. Install `Gymnasium` following the [Setup Gymnasium Notebook.](examples/Setup_Gymnasium.ipynb)
+2. Install `gym_classics2` following the [Setup gym_classics2 Notebook.](examples/Setup_gym_classics2.ipynb)
 
 ## Documentation
 
-[Manual pages](/examples/gym_classics_help_pages.ipynb)
+[Manual pages](/examples/gym_classics2_help_pages.ipynb)
 
 ## Examples
 
@@ -41,8 +27,8 @@ In Colab and Jupyter notebooks, you can add a block with the following code bloc
 
 ```python
 import gymnasium as gym
-import gym_classics
-gym_classics.register()  
+import gym_classics2
+gym_classics2.register()  
 
 env = gym.make('ClassicGridworld-v1', tabular = True)
 
@@ -63,8 +49,8 @@ env.close()
 
 ```python
 import gymnasium as gym
-import gym_classics
-gym_classics.register()  
+import gym_classics2
+gym_classics2.register()  
 
 gym_env = gym.make('ClassicGridworld-v1', tabular = True)
 

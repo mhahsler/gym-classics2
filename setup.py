@@ -4,19 +4,15 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="gym-classics",
-    #version="1.0.0",
-    version="1.0.0+internal.rev1",
-    author="Brett Daley",
-    author_email="brett.daley@ualberta.ca",
-    #description="Classic environments for reinforcement learning and dynamic"
-    #            " programming, implemented in OpenAI Gym and Gymnasium.",
+    name="gym-classics2",
+    version="1.0.0",
+    author="Michael Hahsler",
+    author_email="mhahsler@smu.edu",
     description="Classic environments for reinforcement learning and dynamic"
-                " programming, implemented in OpenAI Gym and Gymnasium. Adapted by Michael Hahsler",
+                " programming, implemented in Gymnasium. Reimplementation of the original gym-classics package by Brett Daley.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    #url="https://github.com/brett-daley/gym-classics",
-    url="https://github.com/mhahsler/gym-classics",
+    url="https://github.com/mhahsler/gym-classics2",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
