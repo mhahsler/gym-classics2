@@ -1,4 +1,4 @@
-from .abstract.gridworld import Gridworld
+from gym_classics2.envs.abstract.gridworld import Gridworld
 
 class FourRooms(Gridworld):
     """An 11x11 gridworld segmented into four rooms. The agent begins in the bottom-left
