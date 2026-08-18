@@ -163,9 +163,9 @@ def semi_gradient_TD0_estimation(env, policy, n, alpha, gamma, max_episode_lengt
 
 def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w = None, max_episode_length=1000, verbose = False, history = False):
     """
-    Semi-gradient SARSA: on-policy control with function approximation.
+    Semi-gradient Sarsa(0): on-policy control with function approximation.
 
-    Implements the **semi-gradient SARSA** algorithm for estimating the optimal
+    Implements the **semi-gradient Sarsa(0)** algorithm for estimating the optimal
     action-value function q_*(s, a) using a differentiable function approximator
     q̂(s, a, w). Actions are selected according to an ε-greedy policy derived
     from the current action-value estimate.

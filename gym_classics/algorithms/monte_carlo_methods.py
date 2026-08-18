@@ -101,7 +101,7 @@ def sample_episode(env, policy = None, start_state = None, start_action = None, 
     return(episode)
 
 
-def on_policy_state_distribution(env, pol, discount = 1, epsilon = 0, n = 100):
+def on_policy_state_distribution(env, pol, discount = 1, epsilon = 0, n = 100, verbose = False):
     """Estimate the (discounted) state distribution of a policy by sampling episodes."""
     
     assert isinstance(env.observation_space, gym.spaces.Discrete), "Tabular methods require discrete state space."   
@@ -109,16 +109,16 @@ def on_policy_state_distribution(env, pol, discount = 1, epsilon = 0, n = 100):
     assert 0.0 < discount <= 1.0
     assert n > 0
     
-    state_cnts = np.zeros(env.observation_space.n)
+    state_counts = np.zeros(env.observation_space.n)
     
     for _ in tqdm(range(n), desc="Sampling Episodes", disable=verbose):
         episode = np.array(sample_episode(env, policy=pol, epsilon = epsilon))
         states = np.append(episode[:,0], episode[-1,3])
         discounts = np.array([discount**i for i in range(len(states))])
         for s, d in zip(states, discounts):
-            state_cnts[int(s)] += d
+            state_counts[int(s)] += d
     
-    state_prob = state_cnts / sum(state_cnts)
+    state_prob = state_counts / sum(state_counts)
     return state_prob
 
 
