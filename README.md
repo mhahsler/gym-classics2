@@ -3,7 +3,7 @@
 
 `gym_classics2` is a collection of well-known discrete MDPs from the reinforcement learning
 literature implemented as Gymnasium environments originally developed 
-as [gym_classics2](https://github.com/brett-daley/gym-classics) by Brett Daley.
+as [gym_classics](https://github.com/brett-daley/gym-classics) by Brett Daley.
 
 `gym_classics2` includes:
 
