@@ -42,8 +42,8 @@ The model-free RL algorithms also work with regular Gymnasium environments.
 1. Install `Gymnasium` following the [Setup Gymnasium Notebook.](examples/Setup_Gymnasium.ipynb)
 2. Install `gym_classics2` following the [Setup gym_classics2 Notebook.](examples/Setup_gym_classics2.ipynb)
 
-Note for Colab users: Gymnasium is already installed and you only need to add the code block to install `gym_classics2`
-to your notebook.
+**Note for Colab users:** Gymnasium is already installed and you only need to add the code block to install `gym_classics2`
+to your notebook. After the installation code is executed, you need to retart the session (See Run all pulldown menu).
 
 ## Examples
 
@@ -119,7 +119,7 @@ A complete and detailed example can be found in the following notebooks:
 
 * Using a `gym_classics2` maze environment:
 [4x3 Classic Gridworld: Value and Policy Iteration.](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/4x3_grid_world.ipynb)
-* Using a `gym_classics2` algorithm on a standard Gymnasium environment: [Frozen Lake: Monte Carlo Methods](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/flozen_lake_MC.ipynb) 
+* Using a `gym_classics2` algorithm on a standard Gymnasium environment: [Frozen Lake: Monte Carlo Methods](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/frozen_lake_MC.ipynb) 
 
 ## Documentation
 
