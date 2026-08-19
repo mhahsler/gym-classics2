@@ -15,7 +15,7 @@ Material for an introduction course to reinforcement learning for compute scient
 * Classic maze problems and support for maze visualization.
 * Algorithms for popular model-based and model-free RL algorithms with a focus on following the Sutton and Barto textbook.
 
-## Environments
+### Environments
 
 The package focuses on educational simple maze problems:
 * Classic 4x3 Gridworld
@@ -25,7 +25,7 @@ The package focuses on educational simple maze problems:
 * L-Maze     
 * Windy Gridworld
 
-## Algorithms
+### Algorithms
 
 The algorithms include:
 * Dynamic Programming: Policy and value iteration
@@ -113,10 +113,13 @@ Model for state (0,0) and action up):
  array([0.1, 0.8, 0.1])]
 ```
 
-### Complete Example
+### Complete Examples
 
-A complete and detailed example can be found in the following notebook:
-[4x3 Grid World: Value and Policy Iteration.](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/4x3_grid_world.ipynb)
+A complete and detailed example can be found in the following notebooks:
+
+* Using a `gym_classics2` maze environment:
+[4x3 Classic Gridworld: Value and Policy Iteration.](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/4x3_grid_world.ipynb)
+* Using a `gym_classics2` algorithm on a standard Gymnasium environment: [Frozen Lake: Monte Carlo Methods](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/flozen_lake_MC.ipynb) 
 
 ## Documentation
 
