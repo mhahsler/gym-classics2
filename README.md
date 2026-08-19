@@ -2,7 +2,7 @@
 [![license](https://img.shields.io/badge/license-GPL%20v3.0-blue)](./LICENSE)
 
 `gym_classics2` is a collection of well-known discrete MDPs from the reinforcement learning
-literature implemented as Gymnasium environments originally developed 
+literature implemented as [Gymnasium](https://gymnasium.farama.org/) environments originally developed 
 as [gym_classics](https://github.com/brett-daley/gym-classics) by Brett Daley. The library is intended to be used
 in an introductory RL course like [Introduction to Reinforcement Learning:
 Material for an introduction course to reinforcement learning for compute scientists](https://mhahsler.github.io/Introduction_to_Reinforcement_Learning/).
@@ -12,7 +12,7 @@ Material for an introduction course to reinforcement learning for compute scient
 * Expanded API to support discrete MDPs with model access. 
 * Updated `gym_classics` environments to match Sutton and Barto's definition more closely.
 * Support for maze visualization.
-* Algorithms for popular model-based and model-free RL algorithms. 
+* Algorithms for popular model-based and model-free RL algorithms with a focus of being used in education.
 
 ## How to install
 
