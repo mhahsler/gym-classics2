@@ -4,15 +4,38 @@
 `gym_classics2` is a collection of well-known discrete MDPs from the reinforcement learning
 literature implemented as [Gymnasium](https://gymnasium.farama.org/) environments originally developed 
 as [gym_classics](https://github.com/brett-daley/gym-classics) by Brett Daley. The library is intended to be used
-in an introductory RL course like [Introduction to Reinforcement Learning:
+in an introductory RL course 
+using the popular Sutton and Barto RL textbook. 
+An example course is [Introduction to Reinforcement Learning:
 Material for an introduction course to reinforcement learning for compute scientists](https://mhahsler.github.io/Introduction_to_Reinforcement_Learning/).
 
 `gym_classics2` provides:
 
-* Expanded API to support discrete MDPs with model access. 
-* Updated `gym_classics` environments to match Sutton and Barto's definition more closely.
-* Support for maze visualization.
-* Algorithms for popular model-based and model-free RL algorithms with a focus of being used in education.
+* Expanded API to support discrete MDPs with model access.
+* Classic maze problems and support for maze visualization.
+* Algorithms for popular model-based and model-free RL algorithms with a focus on following the Sutton and Barto textbook.
+
+## Environments
+
+The package focuses on educational simple maze problems:
+* Classic 4x3 Gridworld
+* Cliff Walk
+* Dyna-Maze            
+* Four Rooms
+* L-Maze     
+* Windy Gridworld
+
+## Algorithms
+
+The algorithms include:
+* Dynamic Programming: Policy and value iteration
+* Monte Carlo Methods
+* Temporal Differencing Methods: Q-learning, Sarsa(0)
+* Linear Function Approximation: semi-gradient TD(0), semi-gradient Sarsa(0) and support for Fourier-basis features.
+* Eligibility Traces: semi-gradient Sarsa($\lambda$)
+* Policy Gradient Methods: REINFORCE, Actor-Critic
+
+The model-free RL algorithms also work with regular Gymnasium environments. 
 
 ## How to install
 
