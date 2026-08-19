@@ -96,7 +96,7 @@ A complete and detailed example can be found in the following notebook:
 ## Documentation
 
 Python manual pages are used. Here is a 
-notebook with the most important [manual pages]((https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/gym_classics2_help_pages.ipynb)
+notebook with the most important [manual pages](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/gym_classics2_help_pages.ipynb)
 
 
 ## References
