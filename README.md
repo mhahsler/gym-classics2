@@ -5,7 +5,7 @@
 literature implemented as Gymnasium environments originally developed 
 as [gym_classics](https://github.com/brett-daley/gym-classics) by Brett Daley. The library is intended to be used
 in an introductory RL course like [Introduction to Reinforcement Learning:
-Material for an introduction course to reinforcement learning for compute scientists].
+Material for an introduction course to reinforcement learning for compute scientists](https://mhahsler.github.io/Introduction_to_Reinforcement_Learning/).
 
 `gym_classics2` provides:
 
