@@ -19,6 +19,8 @@ Material for an introduction course to reinforcement learning for compute scient
 1. Install `Gymnasium` following the [Setup Gymnasium Notebook.](examples/Setup_Gymnasium.ipynb)
 2. Install `gym_classics2` following the [Setup gym_classics2 Notebook.](examples/Setup_gym_classics2.ipynb)
 
+Note for Colab users: Gymnasium is already installed and you only need to add the code block to install `gym_classics2`
+to your notebook.
 
 ## Examples
 
