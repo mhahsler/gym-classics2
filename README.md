@@ -88,12 +88,15 @@ Model for state (0,0) and action up):
  array([0.1, 0.8, 0.1])]
 ```
 
+### Complete Example
+
 A complete and detailed example can be found in the following notebook:
-[4x3 Grid World: Value and Policy Iteration.](examples/4x3_grid_world.ipynb)
+[4x3 Grid World: Value and Policy Iteration.](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/4x3_grid_world.ipynb)
 
 ## Documentation
 
-[Manual pages](/examples/gym_classics2_help_pages.ipynb)
+Python manual pages are used. Here is a 
+notebook with the most important [manual pages]((https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/gym_classics2_help_pages.ipynb)
 
 
 ## References
