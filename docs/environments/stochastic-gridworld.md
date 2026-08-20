@@ -21,33 +21,8 @@ p(s', r \mid s, a),
 \]
 
 the probability of reaching next state \(s'\) and receiving reward \(r\), given
-current state \(s\) and requested action \(a\). The notation
-\(p(s,a,r,s')\) instead describes a joint distribution and additionally
-requires a distribution over the state-action pair. If that distribution is
-\(d(s,a)\), then
-
-\[
-p(s,a,r,s') = d(s,a)\,p(s',r\mid s,a).
-\]
-
-An environment supplies the conditional model \(p(s',r\mid s,a)\). A policy and
-state-visitation process determine \(d(s,a)\).
-
-For the 80–10–10 dynamics, introduce the action actually executed by the
-environment, \(\tilde a\). Movement is deterministic after \(\tilde a\) is
-known:
-
-\[
-p(s',r\mid s,a) =
-\sum_{\tilde a}
-p(\tilde a\mid a)\,
-\mathbf{1}\{s'=f(s,\tilde a)\}\,
-\mathbf{1}\{r=R(s,a,s')\}.
-\]
-
-Here, \(p(\tilde a\mid a)\) is the 80–10–10 action noise, \(f\) applies
-movement and walls, and \(R\) computes the reward. The code below implements
-each of these pieces.
+current state \(s\) and requested action \(a\). This is typically implemented
+as a function \(p(s,a,r,s') \doteq p(s', r \mid s, a)\).
 
 ## Define the layout
 
@@ -68,8 +43,8 @@ reward function distinguishes the positive goal from the negative trap.
 
 The complete class explicitly implements both ways the dynamics are used:
 
-- `step()` samples one executed action.
-- `model()` enumerates every possible executed action.
+- `step()` sample access executing one action.
+- `model()` provides model access and enumerates every possible executed action.
 
 ```python
 from gym_classics2.envs.abstract.gridworld import Gridworld
@@ -84,69 +59,46 @@ class StochasticClassicGridworld(Gridworld):
 |S   |
 """
 
-    # Offsets use Gridworld's action order: up, right, down, left.
-    # -1 is a counter-clockwise turn and +1 is a clockwise turn.
-    action_offsets = (-1, 0, 1)
-    action_probabilities = (0.1, 0.8, 0.1)
+    def __init__(self, tabular=True):
+        super().__init__(self.layout, tabular=tabular)
 
-    def __init__(
-        self,
-        goal_reward=1.0,
-        trap_reward=-1.0,
-        step_reward=-0.04,
-        **kwargs,
-    ):
-        self.trap_reward = trap_reward
-        super().__init__(
-            self.layout,
-            goal_reward=goal_reward,
-            step_reward=step_reward,
-            **kwargs,
-        )
-
+    # Implement the non-deterministic actions:
+    # This method is called by the environment in the step function to create random events.
+    # Here, the random event is that the environment executes a potentially different
+    # noisy action instead of the action the agent asked for.
+    # We return the actually executed noisy action for the step as a list of random elements.
     def _sample_random_elements(self, state, action):
-        """Sample the action that the environment actually executes."""
-        offset = self.np_random.choice(
-            self.action_offsets,
-            p=self.action_probabilities,
-        )
-        executed_action = (action + int(offset)) % self.action_space.n
-        return (executed_action,)
+        offset = self.np_random.choice([-1, 0, 1], p=[0.1, 0.8, 0.1])
+        noisy_action = (action + int(offset)) % self.action_space.n
+        return [noisy_action]
 
-    def _next_state(self, state, action, executed_action):
-        """Apply an executed action and return its conditional probability."""
-        next_state, _ = super()._next_state(state, executed_action)
-        probability = 0.8 if executed_action == action else 0.1
-        return next_state, probability
+    # Returns the next state and the probability for the transition. Action is the agent's chosen action.
+    # Noisy action is the actual randomized action that is executed.
+    def _next_state(self, state, action, noisy_action):
+        next_state, _ = super()._next_state(state, noisy_action)
+        p = 0.8 if action == noisy_action else 0.1
+        return next_state, p
 
     def _reward(self, state, action, next_state):
-        """Return R(s, a, s')."""
         if state in self._goals:
             return 0.0
-        if next_state == (3, 1):
-            return self.trap_reward
-        if next_state == (3, 2):
-            return self._goal_reward
-        return self._step_reward
+        return {(3, 1): -1.0, (3, 2): 1.0}.get(next_state, -0.04)
 
     def _done(self, state, action, next_state):
-        """Mark transitions into either G cell as terminal."""
         return next_state in self._goals
 
+    # Returns an iterator for all possible outcomes.This function is used for model access.
+    # The random element is that we have a noisy action, that may not be the intended action.
+    # Yields: elements with structure (next_state, reward, done, prob)
     def _generate_transitions(self, state, action):
-        """Enumerate every outcome with nonzero p(s', r | s, a)."""
+        # goal state is absorbing
         if state in self._goals:
-            # Planning algorithms may query terminal states. Make them absorbing.
-            yield state, 0.0, True, 1.0
-            return
+            yield state, 0, True, 1.0
 
-        for offset in self.action_offsets:
-            executed_action = (action + offset) % self.action_space.n
-            yield self._deterministic_step(
-                state,
-                action,
-                executed_action,
-            )
+        else:
+            for i in [-1, 0, 1]:
+                noisy_action = (action + i) % self.action_space.n
+                yield self._deterministic_step(state, action, noisy_action)
 ```
 
 ## How the methods construct \(p(s',r\mid s,a)\)
@@ -157,7 +109,6 @@ cell handling. The subclass supplies the random action and reward model.
 | Method | Model component | Role |
 | --- | --- | --- |
 | `_sample_random_elements` | Samples \(p(\tilde a\mid a)\) | Chooses one executed action when `step()` is called |
-| `Gridworld._next_state` | \(f(s,\tilde a)\) | Applies movement, boundaries, and blocked cells |
 | `_next_state` | \(s'\) and \(p(\tilde a\mid a)\) | Returns the resulting state and probability of that random event |
 | `_reward` | \(R(s,a,s')\) | Assigns the reward associated with the transition |
 | `_done` | Terminal indicator | Identifies transitions after which no future reward is available |
@@ -230,22 +181,6 @@ The output is:
 For this state and action, these rows are precisely the nonzero entries of
 \(p(s',r\mid s=(0,0),a=\text{up})\). The first outcome stays at `(0, 0)`
 because the unintended `left` action hits the boundary.
-
-## Changing the stochastic dynamics
-
-To implement a different noise distribution, change
-`action_offsets`, `action_probabilities`, and the probability returned by
-`_next_state`. Sampling and enumeration must describe the same distribution:
-
-- Every outcome sampled by `_sample_random_elements` must be present in
-  `_generate_transitions`.
-- Their corresponding probabilities must match.
-- Probabilities must be nonnegative and sum to one for each `(state, action)`.
-- Random sampling should use `self.np_random` so Gymnasium seeding works.
-
-For probabilities that are not simply 0.8 or 0.1, store the sampled offset—or
-its probability—along with the executed action so `_next_state` can return the
-correct value.
 
 ## Optional Gymnasium registration
 
