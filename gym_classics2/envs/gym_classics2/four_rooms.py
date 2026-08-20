@@ -13,6 +13,9 @@ class FourRooms(Gridworld):
     **rewards**: +1 for episode termination.
 
     **termination**: Taking any action in the goal.
+    
+    Reference: Sutton, Precup and Singh: Between MDPs and semi-MDPs: A framework for temporal abstraction in reinforcement learning. 
+        Artificial Intelligence, 112(1-2):181-211, 1999. [https://hdl.handle.net/20.500.14394/9879] 
     """
 
     layout = """

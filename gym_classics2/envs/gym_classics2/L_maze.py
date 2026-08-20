@@ -5,6 +5,8 @@ class LMazeGridworld(Gridworld):
 
     The agent begins below the horizontal barrier and must travel around it to
     reach the goal near the upper-right corner.
+    
+    Reference: Maze used to demonstrate Dijkstra's algorithm, Wikipedia [https://en.wikipedia.org/wiki/Dijkstra's_algorithm]
     """
     layout = """
 |          |
