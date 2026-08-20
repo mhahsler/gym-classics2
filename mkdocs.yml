@@ -14,8 +14,10 @@ theme:
 nav:
   - Home: index.md
   - Getting started: getting-started.md
-  - Environments: environments.md
-  - Model access: model-access.md
+  - Environments:
+      - Overview: environments/overview.md
+      - Model access: environments/model-access.md
+      - Create a stochastic Gridworld: environments/stochastic-gridworld.md
   - Algorithms:
       - Choosing an algorithm: algorithms/overview.md
       - Dynamic programming: algorithms/dynamic-programming.md

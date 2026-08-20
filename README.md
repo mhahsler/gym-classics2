@@ -8,6 +8,8 @@ reinforcement-learning algorithms for teaching with
 [Gymnasium](https://gymnasium.farama.org/). It is based on Brett Daley's
 [gym-classics](https://github.com/brett-daley/gym-classics) and follows examples
 from Sutton and Barto's *Reinforcement Learning: An Introduction*.
+The package is intended for educational use. Example course material (slides, implementation examples and exercises)
+can be found here: [Introduction Course to Reinforcement Learning](https://mhahsler.github.io/Introduction_to_Reinforcement_Learning/).
 
 The package includes:
 
@@ -26,30 +28,16 @@ Python 3.9 or newer is required. To install the current development version:
 python -m pip install "gym-classics2 @ git+https://github.com/mhahsler/gym-classics2.git"
 ```
 
-For an editable checkout:
-
-```bash
-git clone https://github.com/mhahsler/gym-classics2.git
-cd gym-classics2
-python -m pip install -e .
-```
-
-Notebook tooling is optional:
-
-```bash
-python -m pip install -e ".[notebooks]"
-```
-
 ## Quick start
 
 Register the environments, create one with Gymnasium, and use the standard
-`reset`/`step` interface:
+`reset`/`step` Gymnasium interface:
 
 ```python
 import gymnasium as gym
 import gym_classics2
-
 gym_classics2.register()
+
 env = gym.make("ClassicGridworld-v1", tabular=True)
 
 state, info = env.reset(seed=42)
@@ -91,10 +79,10 @@ terminals     = [False, False, False]
 probabilities = [0.1, 0.8, 0.1]
 ```
 
-See the [model-access guide](https://mhahsler.github.io/gym-classics2/model-access/)
-for raw states, array shapes, terminal transitions, and deterministic models.
+See the [model-access guide](https://mhahsler.github.io/gym-classics2/environments/model-access/)
+for details.
 
-## Included environments
+## Included gridworld environments
 
 | Gymnasium ID | Task | Dynamics | Default state representation |
 | --- | --- | --- | --- |
@@ -119,7 +107,7 @@ for raw states, array shapes, terminal transitions, and deterministic models.
 | Eligibility traces | semi-gradient Sarsa($\lambda$) | No |
 | Policy gradient | REINFORCE, actor-critic | No |
 
-The model-free algorithms can also be used with compatible Gymnasium
+All model-free algorithms can also be used with standard Gymnasium
 environments outside this package. See the
 [algorithm guide](https://mhahsler.github.io/gym-classics2/algorithms/overview/)
 for input requirements and return values.

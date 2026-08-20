@@ -60,4 +60,5 @@ state_id = base_env.state2id((0, 0))
 coordinates = base_env.id2state(state_id)
 ```
 
-Continue with [Environments](environments.md) or [Model access](model-access.md).
+Continue with [Environments](environments/overview.md) or
+[Model access](environments/model-access.md).

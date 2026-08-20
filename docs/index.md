@@ -9,8 +9,8 @@ transition models for planning algorithms.
 
 - Follow [Getting started](getting-started.md) to install the package and run an
   environment.
-- Browse [Environments](environments.md) to choose a task.
-- Read [Model access](model-access.md) before using value or policy iteration.
+- Browse [Environments](environments/overview.md) to choose a task.
+- Read [Model access](environments/model-access.md) before using value or policy iteration.
 - Use [Choosing an algorithm](algorithms/overview.md) to check an algorithm's
   requirements and outputs.
 - Consult the [API reference](api/registration.md) for exact signatures.
