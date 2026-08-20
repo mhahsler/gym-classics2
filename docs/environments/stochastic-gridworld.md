@@ -43,8 +43,9 @@ reward function distinguishes the positive goal from the negative trap.
 
 The complete class explicitly implements both ways the dynamics are used:
 
-- `step()` sample access executing one action.
 - `model()` provides model access and enumerates every possible executed action.
+- `step()` sample access executing one action using the model.
+
 
 ```python
 from gym_classics2.envs.abstract.gridworld import Gridworld
@@ -62,8 +63,7 @@ class StochasticClassicGridworld(Gridworld):
     def __init__(self, tabular=True):
         super().__init__(self.layout, tabular=tabular)
 
-    # Implement the non-deterministic actions:
-    # This method is called by the environment in the step function to create random events.
+    # Used by the environment at the beginning of the step function to determine value of all random events.
     # Here, the random event is that the environment executes a potentially different
     # noisy action instead of the action the agent asked for.
     # We return the actually executed noisy action for the step as a list of random elements.
@@ -73,17 +73,19 @@ class StochasticClassicGridworld(Gridworld):
         return [noisy_action]
 
     # Returns the next state and the probability for the transition. Action is the agent's chosen action.
-    # Noisy action is the actual randomized action that is executed.
+    # Noisy action is the actual randomized action that was sampled in _sample_random_elements and is executed.
     def _next_state(self, state, action, noisy_action):
         next_state, _ = super()._next_state(state, noisy_action)
         p = 0.8 if action == noisy_action else 0.1
         return next_state, p
 
+    # Reward model
     def _reward(self, state, action, next_state):
         if state in self._goals:
             return 0.0
         return {(3, 1): -1.0, (3, 2): 1.0}.get(next_state, -0.04)
 
+    # Terminal state indicator
     def _done(self, state, action, next_state):
         return next_state in self._goals
 
@@ -121,7 +123,13 @@ calls `_next_state`, `_reward`, and `_done`, producing
 (next_state, reward, terminal, probability)
 ```
 
-The public `model(state, action)` method collects these tuples into four
+`step()` calls 
+1. `_sample_random_elements`
+2. `_next_state`
+3. `_reward`
+4. `_done`
+
+`model(state, action)` collects tuples from `_generate_transitions` into four
 parallel sequences and checks that the probabilities are nonnegative and sum to
 one.
 
@@ -149,14 +157,9 @@ print("next state:", env.id2state(next_state))
 env.close()
 ```
 
-`step()` calls `_sample_random_elements` once, then conditions the transition on
-that sampled `executed_action`. Using `self.np_random` makes the result
-reproducible after `reset(seed=...)`.
+## Access the model with `model()`
 
-## Enumerate the model with `model()`
-
-Sampling produces one transition. Planning algorithms such as value iteration
-need every possible transition and call `model()` instead.
+Produce all possible transition in a given state for a given action.
 
 ```python
 state = env.state2id((0, 0))

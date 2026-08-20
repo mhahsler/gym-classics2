@@ -57,7 +57,7 @@ class Gridworld(BaseEnv):
         """Tuple containing the raw terminal goal coordinates."""
         return tuple(sorted(self._goals))
 
-    def _next_state(self, state, action):
+    def _next_state(self, state, action, *random_elements):
         next_state = self._move(state, action)
         if self._is_blocked(next_state):
             next_state = state

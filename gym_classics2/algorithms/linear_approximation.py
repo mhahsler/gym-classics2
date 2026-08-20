@@ -226,9 +226,10 @@ def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w = None, max_episode_l
         done = False
 
         i = 0
+        if history:
+            G = 0
         while not done and i < max_episode_length:
-            if history:
-                G = 0
+            
 
             next_state, reward, terminated, truncated, _ = env.step(action)
             done = terminated or truncated
