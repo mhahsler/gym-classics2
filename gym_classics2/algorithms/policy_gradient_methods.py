@@ -20,9 +20,11 @@ from gym_classics2.envs.abstract.base_env import BaseEnv as GymClassicsBaseEnv
 from gym_classics2.algorithms.schedules import ConstantSchedule
 
 def h(s,a,theta,env):
+    """Return the linear action preference for state ``s`` and action ``a``."""
     return np.dot(theta, state_action_features(s,a,env))
 
 def pi(s,theta,env):
+    """Return the softmax action-probability vector for a state."""
     hs = np.array([h(s,a,theta,env) for a in range(env.action_space.n)])
     exp_hs = np.exp(hs)
     return exp_hs / np.sum(exp_hs)

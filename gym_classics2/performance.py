@@ -2,6 +2,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def simple_moving_average(data, window_size = 100):
+    """Return a centered simple moving average padded with ``NaN`` values.
+
+    Args:
+        data: One-dimensional numeric sequence.
+        window_size: Number of observations in the averaging window.
+
+    Returns:
+        NumPy array with the same length as ``data``.
+    """
     weights = np.ones(window_size) / window_size
     sma = np.convolve(data, weights, mode='valid')
     sma = np.concatenate((np.full((window_size)//2, np.nan),sma,np.full(len(data)-len(sma)-(window_size)//2, np.nan)))  # Pad the beginning with NaN for alignment
@@ -9,6 +18,7 @@ def simple_moving_average(data, window_size = 100):
 
 
 def cum_avg(data):
+    """Return the cumulative average at every position in a numeric sequence."""
     return np.cumsum(data) / np.arange(1, len(data) + 1)
 
 def plot_returns(returns, y_label = "Episode Return", title = "", window_size = 100):

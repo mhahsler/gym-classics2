@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gym-classics2"
+version = "1.0.1"
+description = "Classic discrete reinforcement-learning environments and textbook algorithms for Gymnasium"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Michael Hahsler", email = "mhahsler@smu.edu" },
+]
+keywords = ["reinforcement learning", "gymnasium", "MDP", "education"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Education",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "gymnasium>=0.29",
+  "matplotlib>=3.6",
+  "numpy>=1.23",
+  "pygame>=2.1",
+  "tqdm>=4.64",
+]
+
+[project.optional-dependencies]
+notebooks = ["ipython>=8", "jupyter>=1"]
+scipy = ["scipy>=1.9"]
+docs = [
+  "mkdocs-material>=9",
+  "mkdocstrings[python]>=0.24",
+]
+test = ["pytest>=7"]
+
+[project.urls]
+Homepage = "https://github.com/mhahsler/gym-classics2"
+Documentation = "https://mhahsler.github.io/gym-classics2/"
+Repository = "https://github.com/mhahsler/gym-classics2"
+Issues = "https://github.com/mhahsler/gym-classics2/issues"
+
+[tool.setuptools.packages.find]
+include = ["gym_classics2*"]

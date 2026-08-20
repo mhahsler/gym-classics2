@@ -52,6 +52,11 @@ class Gridworld(BaseEnv):
         if not tabular:
             self.observation_space = MultiDiscrete(self.dims)
 
+    @property
+    def goal_states(self):
+        """Tuple containing the raw terminal goal coordinates."""
+        return tuple(sorted(self._goals))
+
     def _next_state(self, state, action):
         next_state = self._move(state, action)
         if self._is_blocked(next_state):
@@ -90,6 +95,7 @@ class Gridworld(BaseEnv):
         return next_state in self._goals
     
     def step(self, action):
+        """Advance the environment and render a frame in human mode."""
         next_state, reward, done, x, info = super().step(action)
         
         if self.render_mode == "human":
@@ -98,6 +104,7 @@ class Gridworld(BaseEnv):
         return next_state, reward, done, x, info
 
     def reset(self, seed=None, options=None):
+        """Reset to a start cell and render a frame in human mode."""
         observation, info = super().reset(seed=seed, options=options)
         
         if self.render_mode == "human":
@@ -106,6 +113,7 @@ class Gridworld(BaseEnv):
         return observation, info
     
     def close(self):
+        """Release any PyGame display resources."""
         if self.PyGame_window is not None:
             pygame.display.quit()
             pygame.quit()
@@ -115,6 +123,7 @@ class Gridworld(BaseEnv):
         super().close()
     
     def render(self):
+        """Return an RGB frame when ``render_mode='rgb_array'``."""
         if self.render_mode == "rgb_array":
             return self._render_frame()
 

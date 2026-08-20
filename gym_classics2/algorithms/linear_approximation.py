@@ -33,6 +33,7 @@ def active_weights(a, sf_len):
     return [0] + list(range(a*sf_len+1, a*sf_len+sf_len+1))
 
 def state_action_features(s,a,env):
+    """Construct a block-coded feature vector for a state-action pair."""
     s = state_features(s,env)
     x = np.zeros(1+len(s)*env.action_space.n)
     x[active_weights(a, len(s)-1)] = s

@@ -1,135 +1,146 @@
-# gym_classics2: Classic Discrete finite MDPs for Reinforcement Learning
-[![license](https://img.shields.io/badge/license-GPL%20v3.0-blue)](./LICENSE)
+# gym_classics2
 
-`gym_classics2` is a collection of well-known discrete MDPs from the reinforcement learning
-literature implemented as [Gymnasium](https://gymnasium.farama.org/) environments originally developed 
-as [gym_classics](https://github.com/brett-daley/gym-classics) by Brett Daley. The library is intended to be used
-in an introductory RL course 
-using the popular Sutton and Barto RL textbook. 
-An example course is [Introduction to Reinforcement Learning:
-Material for an introduction course to reinforcement learning for compute scientists](https://mhahsler.github.io/Introduction_to_Reinforcement_Learning/).
+[![license](https://img.shields.io/badge/license-GPL%20v3.0-blue)](LICENSE)
+[![documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://mhahsler.github.io/gym-classics2/)
 
-`gym_classics2` provides:
+`gym_classics2` provides classic finite Markov decision processes and readable
+reinforcement-learning algorithms for teaching with
+[Gymnasium](https://gymnasium.farama.org/). It is based on Brett Daley's
+[gym-classics](https://github.com/brett-daley/gym-classics) and follows examples
+from Sutton and Barto's *Reinforcement Learning: An Introduction*.
 
-* Expanded API to support discrete MDPs with model access.
-* Classic maze problems and support for maze visualization.
-* Algorithms for popular model-based and model-free RL algorithms with a focus on following the Sutton and Barto textbook.
+The package includes:
 
-### Environments
+- Gymnasium environments for gridworlds, random walks, mazes, and cliff walking.
+- Direct access to the transition and reward model, $p(s',r\mid s,a)$.
+- Textbook-oriented implementations of dynamic programming, Monte Carlo,
+  temporal-difference, function-approximation, eligibility-trace, and
+  policy-gradient algorithms.
+- Gridworld plotting and animation helpers.
 
-The package focuses on educational simple maze problems:
-* Classic 4x3 Gridworld
-* Cliff Walk
-* Dyna-Maze            
-* Four Rooms
-* L-Maze     
-* Windy Gridworld
+## Installation
 
-### Algorithms
+Python 3.9 or newer is required. To install the current development version:
 
-The algorithms include:
-* Dynamic Programming: Policy and value iteration
-* Monte Carlo Methods
-* Temporal Differencing Methods: Q-learning, Sarsa(0)
-* Linear Function Approximation: semi-gradient TD(0), semi-gradient Sarsa(0) and support for Fourier-basis features.
-* Eligibility Traces: semi-gradient Sarsa($\lambda$)
-* Policy Gradient Methods: REINFORCE, Actor-Critic
+```bash
+python -m pip install "gym-classics2 @ git+https://github.com/mhahsler/gym-classics2.git"
+```
 
-The model-free RL algorithms also work with regular Gymnasium environments. 
+For an editable checkout:
 
-## How to install
+```bash
+git clone https://github.com/mhahsler/gym-classics2.git
+cd gym-classics2
+python -m pip install -e .
+```
 
-1. Install `Gymnasium` following the [Setup Gymnasium Notebook.](examples/Setup_Gymnasium.ipynb)
-2. Install `gym_classics2` following the [Setup gym_classics2 Notebook.](examples/Setup_gym_classics2.ipynb)
+Notebook tooling is optional:
 
-**Note for Colab users:** Gymnasium is already installed and you only need to add the code block to install `gym_classics2`
-to your notebook. After the installation code is executed, you need to retart the session (See Run all pulldown menu).
+```bash
+python -m pip install -e ".[notebooks]"
+```
 
-## Examples
+## Quick start
 
-### Using the Standard Gymnasium Interface
+Register the environments, create one with Gymnasium, and use the standard
+`reset`/`step` interface:
 
 ```python
 import gymnasium as gym
 import gym_classics2
-gym_classics2.register()  
 
-env = gym.make('ClassicGridworld-v1', tabular = True)
+gym_classics2.register()
+env = gym.make("ClassicGridworld-v1", tabular=True)
 
-for t in range(1, 100 + 1):
-    action = env.action_space.sample()  # Select a random action
-    next_state, reward, terminated, truncated, _ = env.step(action)
+state, info = env.reset(seed=42)
+for t in range(100):
+    action = env.action_space.sample()
+    next_state, reward, terminated, truncated, info = env.step(action)
     done = terminated or truncated
-    print("t={}, state={}, action={}, reward={}, next_state={}, done={}".format(
-        t, state, action, reward, next_state, done))
-    if done:
-        next_state, _ = env.reset()
+    print(t, state, action, reward, next_state, done)
     state = next_state
+    if done:
+        state, info = env.reset()
 
 env.close()
 ```
 
-### Using Model Access
+## Model access
+
+The unwrapped environments expose the full finite-MDP model. In tabular mode,
+states and next states are integer IDs:
 
 ```python
-import gymnasium as gym
-import gym_classics2
-gym_classics2.register()  
+gym_env = gym.make("ClassicGridworld-v1", tabular=True)
+env = gym_env.unwrapped  # expose the gym_classics2-specific API
 
-gym_env = gym.make('ClassicGridworld-v1', tabular = True)
+print("Starts:", env.start_states)
+print("Goals:", env.goal_states)
 
-### unwrapping is necessary to expose the model access interface
-env = gym_env.unwrapped
-
-print(f"States {env.states()}: {[env.id2state(s) for s in env.states()]}")
-print(f"Actions {env.actions()}: {[env.id2action(a) for a in env.actions()]}")
-print("Start states:", env._starts)
-print("Goals (terminal states):", env._goals)
+state = env.state2id((0, 0))
+action = env.action2id("up")
+next_states, rewards, terminals, probabilities = env.model(state, action)
 ```
 
-```
-States range(0, 11): [(0, 0), (0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1), (2, 2), (3, 0), (3, 1), (3, 2)]
-Actions range(0, 4): ['up', 'right', 'down', 'left']
-Start states: [(0, 0)]
-Goals (terminal states): {(3, 1), (3, 2)}
-```
+For this transition, the result is equivalent to:
 
-The model method implements access to the transition and reward model $P(s', r | s, a)$. 
-We specify $s$ and $a$ and get a table for all possible $s'$, with the reward $r$, the information if $s'$ 
-is a terminal state, and the transition probability.
-
-```python
-print("Model for state (0,0) and action up):\n(next_states, rewards, terminals, probs)\n")
-display(env.model(env.state2id((0,0)), env.action2id("up")))
+```text
+next_states   = [0, 1, 3]
+rewards       = [-0.04, -0.04, -0.04]
+terminals     = [False, False, False]
+probabilities = [0.1, 0.8, 0.1]
 ```
 
+See the [model-access guide](https://mhahsler.github.io/gym-classics2/model-access/)
+for raw states, array shapes, terminal transitions, and deterministic models.
+
+## Included environments
+
+| Gymnasium ID | Task | Dynamics | Default state representation |
+| --- | --- | --- | --- |
+| `5Walk-v0` | Five-state random walk | Deterministic | Tabular |
+| `19Walk-v0` | Nineteen-state random walk | Deterministic | Tabular |
+| `ClassicGridworld-v1` | 4×3 gridworld | Stochastic (80–10–10) | Tabular |
+| `LMaze-v0` | L-shaped maze | Deterministic | Tabular |
+| `CliffWalk-v1` | Cliff walking | Deterministic | Tabular |
+| `DynaMaze-v0` | Dyna maze | Deterministic | Tabular |
+| `FourRooms-v0` | Four rooms | Deterministic | Tabular |
+| `SparseGridworld-v0` | Sparse-reward gridworld | Stochastic (80–10–10) | Tabular |
+| `WindyGridworld-v0` | Windy gridworld | Deterministic | Tabular |
+
+## Included algorithms
+
+| Family | Implementations | Requires model access? |
+| --- | --- | ---: |
+| Dynamic programming | value iteration, policy iteration | Yes |
+| Monte Carlo | prediction, exploring-starts control | No |
+| Temporal difference | Sarsa(0), Q-learning | No |
+| Linear approximation | semi-gradient TD(0), Sarsa(0), Fourier features | No |
+| Eligibility traces | semi-gradient Sarsa($\lambda$) | No |
+| Policy gradient | REINFORCE, actor-critic | No |
+
+The model-free algorithms can also be used with compatible Gymnasium
+environments outside this package. See the
+[algorithm guide](https://mhahsler.github.io/gym-classics2/algorithms/overview/)
+for input requirements and return values.
+
+## Documentation and examples
+
+- [Documentation](https://mhahsler.github.io/gym-classics2/)
+- [4×3 Gridworld: value and policy iteration](examples/4x3_grid_world.ipynb)
+- [Frozen Lake: Monte Carlo methods](examples/frozen_lake_MC.ipynb)
+- [Course materials](https://mhahsler.github.io/Introduction_to_Reinforcement_Learning/)
+
+To build the documentation locally:
+
+```bash
+python -m pip install -e ".[docs]"
+mkdocs serve
 ```
-Model for state (0,0) and action up):
-(next_states, rewards, terminals, probs)
-
-[[0, 1, 3],
- array([-0.04, -0.04, -0.04]),
- array([False, False, False]),
- array([0.1, 0.8, 0.1])]
-```
-
-### Complete Examples
-
-A complete and detailed example can be found in the following notebooks:
-
-* Using a `gym_classics2` maze environment:
-[4x3 Classic Gridworld: Value and Policy Iteration.](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/4x3_grid_world.ipynb)
-* Using a `gym_classics2` algorithm on a standard Gymnasium environment: [Frozen Lake: Monte Carlo Methods](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/frozen_lake_MC.ipynb) 
-
-## Documentation
-
-Python manual pages are used. Here is a 
-notebook with the most important [manual pages](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/gym_classics2_help_pages.ipynb)
-
 
 ## References
 
-* Brett Daley (2021), Gym Classics, GitHub repository, https://github.com/brett-daley/gym-classics
-* Michael Hahsler (2025), Introduction to Reinforcement Learning: Material for an Introduction Course, GitHun repository, https://mhahsler.github.io/Introduction_to_Reinforcement_Learning/
-* Sutton and Barto (2018), Reinforcement Learning: An Introduction, 2nd Ed., http://incompleteideas.net/book/the-book-2nd.html
-* Mark Towers et al (2015), Gymnasium: A Standard Interface for Reinforcement Learning Environments, https://doi.org/10.48550/arXiv.2407.17032
+- Brett Daley (2021), [Gym Classics](https://github.com/brett-daley/gym-classics).
+- Michael Hahsler (2025), [Introduction to Reinforcement Learning](https://mhahsler.github.io/Introduction_to_Reinforcement_Learning/).
+- Richard S. Sutton and Andrew G. Barto (2018), [*Reinforcement Learning: An Introduction*, second edition](http://incompleteideas.net/book/the-book-2nd.html).
+- Mark Towers et al. (2024), [Gymnasium: A Standard Interface for Reinforcement Learning Environments](https://doi.org/10.48550/arXiv.2407.17032).

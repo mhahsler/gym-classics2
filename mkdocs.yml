@@ -1,0 +1,59 @@
+site_name: gym_classics2
+site_description: Classic finite MDPs and textbook reinforcement-learning algorithms for Gymnasium
+site_url: https://mhahsler.github.io/gym-classics2/
+repo_url: https://github.com/mhahsler/gym-classics2
+repo_name: mhahsler/gym-classics2
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Environments: environments.md
+  - Model access: model-access.md
+  - Algorithms:
+      - Choosing an algorithm: algorithms/overview.md
+      - Dynamic programming: algorithms/dynamic-programming.md
+  - Tutorials:
+      - Solve Classic Gridworld: tutorials/gridworld.md
+      - Monte Carlo on Frozen Lake: tutorials/frozen-lake.md
+  - API reference:
+      - Registration: api/registration.md
+      - Environments: api/environments.md
+      - Algorithms: api/algorithms.md
+      - Utilities: api/utilities.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - tables
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            docstring_options:
+              warn_missing_types: false
+            members_order: source
+            show_root_heading: true
+            show_source: true
+            separate_signature: true
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+watch:
+  - gym_classics2

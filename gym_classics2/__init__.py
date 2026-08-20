@@ -62,6 +62,28 @@ _registry = (
 _backend = None
 
 def register(backend='gymnasium'):
+    """Register all bundled environments with Gymnasium or legacy Gym.
+
+    Call this once before passing a ``gym_classics2`` environment ID to
+    :func:`gymnasium.make`.
+
+    Args:
+        backend: Registry to use. ``"gymnasium"`` is the default and recommended
+            value; ``"gym"`` supports legacy installations.
+
+    Warns:
+        UserWarning: If registration was already performed in this process. Later
+            calls are ignored.
+
+    Raises:
+        AssertionError: If *backend* is neither ``"gymnasium"`` nor ``"gym"``.
+
+    Example:
+        >>> import gymnasium as gym
+        >>> import gym_classics2
+        >>> gym_classics2.register()
+        >>> env = gym.make("ClassicGridworld-v1")
+    """
     global _backend
     if _backend is not None:
         warnings.warn("gym-classics environments were already registered for {}; "

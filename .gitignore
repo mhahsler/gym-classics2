@@ -3,3 +3,5 @@ build
 dist
 *.egg-info
 gymnasium_display_recorder.py
+videos
+site

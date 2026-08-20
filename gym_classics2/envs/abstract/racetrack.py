@@ -100,6 +100,7 @@ class Racetrack(Gridworld):
                 yield self._deterministic_step(state, action, success, start_index)
 
     def render(self, mode='human'):
+        """Render the track and current car position in a PyGame window."""
         assert mode == 'human'
 
         if self._pygame is None:
@@ -124,6 +125,7 @@ class Racetrack(Gridworld):
         self.pygame.display.update()
 
     def close(self):
+        """Release PyGame resources used by the racetrack renderer."""
         if self._pygame is not None:
             self._pygame.quit()
         return super().close()

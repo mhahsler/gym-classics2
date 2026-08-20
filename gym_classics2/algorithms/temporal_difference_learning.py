@@ -15,6 +15,30 @@ from gym_classics2.algorithms.policy import random_policy
 from gym_classics2.algorithms.schedules import Schedule, ConstantSchedule
 
 def Sarsa_0(env, discount, alpha, epsilon, Q=None, n = 100, verbose = False, history = False):
+    """Learn action values with one-step on-policy Sarsa.
+
+    Args:
+        env: Gymnasium environment with discrete observation and action spaces.
+        discount: Reward discount factor in ``[0, 1]``.
+        alpha: Scalar step size or a
+            :class:`~gym_classics2.algorithms.schedules.Schedule` evaluated once
+            per episode.
+        epsilon: Scalar exploration probability or a schedule evaluated once per
+            episode.
+        Q: Optional initial action-value array shaped
+            ``(env.observation_space.n, env.action_space.n)``. The array is updated
+            in place.
+        n: Number of training episodes.
+        verbose: Print individual updates when true.
+        history: Retain Q arrays, discounted episode returns, and episode lengths.
+
+    Returns:
+        The learned Q array. If ``history=True``, returns ``(Q, history_dict)``;
+        the dictionary contains ``Qs``, ``returns``, and ``ep_lens``.
+
+    Raises:
+        AssertionError: If the observation space is not discrete.
+    """
     assert isinstance(env.observation_space, gym.spaces.Discrete), "Tabular methods require discrete state space."  
         
     if not isinstance(alpha, Schedule):
@@ -79,6 +103,32 @@ def Sarsa_0(env, discount, alpha, epsilon, Q=None, n = 100, verbose = False, his
 
 
 def Q_learning(env, discount, alpha, epsilon, Q=None, n = 100, verbose = False, history = False):
+    """Learn action values with one-step off-policy Q-learning.
+
+    Args:
+        env: Gymnasium environment with discrete observation and action spaces.
+        discount: Reward discount factor in ``[0, 1]``.
+        alpha: Scalar step size or a
+            :class:`~gym_classics2.algorithms.schedules.Schedule` evaluated once
+            per episode.
+        epsilon: Scalar exploration probability or a schedule evaluated once per
+            episode.
+        Q: Optional initial action-value array shaped
+            ``(env.observation_space.n, env.action_space.n)``. The array is updated
+            in place.
+        n: Number of training episodes.
+        verbose: Print progress information when true.
+        history: Retain Q arrays, discounted episode returns, episode lengths, and
+            state-visit counts.
+
+    Returns:
+        The learned Q array. If ``history=True``, returns ``(Q, history_dict)``;
+        the dictionary contains ``Qs``, ``returns``, ``ep_lens``, and
+        ``state_visits``.
+
+    Raises:
+        AssertionError: If the observation space is not discrete.
+    """
     assert isinstance(env.observation_space, gym.spaces.Discrete), "Tabular methods require discrete state space."  
     
     if not isinstance(alpha, Schedule):

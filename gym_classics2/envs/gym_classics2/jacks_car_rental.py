@@ -42,6 +42,7 @@ class JacksCarRental(BaseEnv):
         super().__init__(starts={(10, 10)}, n_actions=11, reachable_states=states)
 
     def reset(self, seed=None, options=None):
+        """Reset the car counts and seed the Poisson distributions."""
         # Make sure each distribution has access to the np_random module
         for distr in [self._lot1_requests_distr, self._lot1_dropoffs_distr,
                       self._lot2_requests_distr, self._lot2_dropoffs_distr]:
@@ -49,6 +50,7 @@ class JacksCarRental(BaseEnv):
         return super().reset(seed)
 
     def step(self, action):
+        """Simulate one night of moves, rental requests, and returns."""
         assert self.action_space.contains(action)
         state = self.state
         action = decode_action(action)
@@ -133,6 +135,7 @@ class JacksCarRentalModified(JacksCarRental):
 
 
 class TruncatedPoisson:
+    """Finite approximation to a Poisson distribution for model enumeration."""
     def __init__(self, mean, threshold=1e-6):
         assert isinstance(mean, int) and mean > 0
         assert 0.0 < threshold < 1.0
@@ -155,22 +158,23 @@ class TruncatedPoisson:
         return zip(self.domain, self.Pr)
 
     def sample(self):
+        """Draw a value using the environment's NumPy random generator."""
         return self.np_random.choice(self.domain, p=self.Pr)
 
 
 def decode_action(i):
-    # Convert the integer to a +/- delta representing the cars moved from lot 1 to 2
+    """Convert an action ID to cars moved from lot 1 to lot 2."""
     return i - 5
 
 
 def move_cars(state, action):
-    # We can't move more cars than are available at the source lot
+    """Apply a feasible overnight car movement and return both lot counts."""
     moved_cars = clip(action, -state[1], state[0])
     return [state[0] - moved_cars, state[1] + moved_cars]
 
 
 def handle_requests_and_dropoffs(cars, requests, dropoffs):
-    # We can satisfy as many requests as we have cars available
+    """Apply one lot's rental requests and returns, respecting capacity."""
     satisfied_requests = min(cars, requests)
     # Can't have more than 20 cars at the end of the day
     return clip(cars + dropoffs - satisfied_requests, 0, 20)

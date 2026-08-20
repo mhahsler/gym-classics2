@@ -32,9 +32,8 @@ def sample_episode(env, policy = None, start_state = None, start_action = None, 
     
     Args: 
         env: The environment to sample from.
-        policy: A mapping from states to actions. For discrete state spaces a action list in the order of states. 
-                For 
-        If None, a random policy will be used.
+        policy: A mapping from states to actions. For discrete state spaces, use
+            an action list in state order. If ``None``, a random policy is used.
         start_state: The state to start the episode from (if None, the environment's default starting state will be used).
         start_action: The action to take in the first step of the episode (if None, the action will be chosen according to the policy or randomly if no policy is given).
         epsilon: The probability of taking a random action instead of the policy's action at each step (for epsilon-greedy exploration).
@@ -123,6 +122,20 @@ def on_policy_state_distribution(env, pol, discount = 1, epsilon = 0, n = 100, v
 
 
 def MC_prediction(env, policy, discount, n = 100, max_episode_len = 100, verbose = False):
+    """Estimate a policy's state values with first-visit Monte Carlo prediction.
+
+    Args:
+        env: Gymnasium environment with a discrete observation space.
+        policy: Array-like mapping from state IDs to action IDs.
+        discount: Reward discount factor.
+        n: Number of episodes to sample.
+        max_episode_len: Maximum sampled steps per episode.
+        verbose: Print episode progress when true.
+
+    Returns:
+        A NumPy value array with one entry per state. Unvisited states contain
+        ``numpy.nan``.
+    """
     assert isinstance(env.observation_space, gym.spaces.Discrete), "Tabular methods require discrete state space."  
     assert n > 0
     assert max_episode_len > 0
@@ -153,6 +166,25 @@ def MC_prediction(env, policy, discount, n = 100, max_episode_len = 100, verbose
 
 # this version does not use incremental updates and is very slow!
 def MC_control_ES_textbook(env, discount, n = 100, Q = None, max_episode_len = 100, history = False, verbose = False): 
+    """Monte Carlo control with exploring starts and stored sample returns.
+
+    This direct textbook implementation stores every first-visit return. Prefer
+    :func:`MC_control_ES` for larger experiments because its running-average
+    update uses less memory.
+
+    Args:
+        env: A tabular ``gym_classics2`` environment.
+        discount: Reward discount factor.
+        n: Number of episodes to sample.
+        Q: Optional initial action-value array.
+        max_episode_len: Maximum sampled steps per episode.
+        history: Retain intermediate policies, Q arrays, episodes, and returns.
+        verbose: Print episode details; values greater than one print transitions.
+
+    Returns:
+        ``(policy, Q)``. If ``history=True``, a third item contains the history
+        dictionary with ``policies``, ``Q_values``, ``episodes``, and ``returns``.
+    """
     assert isinstance(env.observation_space, gym.spaces.Discrete), "Tabular methods require discrete state space."  
     assert n > 0
     assert max_episode_len > 0

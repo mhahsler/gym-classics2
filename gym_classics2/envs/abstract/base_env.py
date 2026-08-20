@@ -41,7 +41,9 @@ class BaseEnv(Env, metaclass=ABCMeta):
         # observation space is defined by the subclass
         #self.observation_space = Discrete(len(self._reachable_states))
         
-        self._starts = starts
+        # Normalize sets and other iterables so reset() can sample by index and
+        # callers see a read-only public representation.
+        self._starts = tuple(starts)
         self.state = None
         
         self._transition_cache = {}
@@ -65,6 +67,7 @@ class BaseEnv(Env, metaclass=ABCMeta):
         
                               
     def reset(self, seed=None, options=None):
+        """Start a new episode and return ``(observation, info)``."""
         super().reset(seed=seed)
 
         self.state = random.choice(self._starts)
@@ -80,6 +83,7 @@ class BaseEnv(Env, metaclass=ABCMeta):
         return observation, info
 
     def step(self, action):
+        """Sample one transition and return the five-item Gymnasium result."""
         assert self.action_space.contains(action)
         
         # after the random elements are sampled, the environment transition is deterministic
@@ -99,6 +103,15 @@ class BaseEnv(Env, metaclass=ABCMeta):
     ## we use the default close, can be overwritten.
 
     ## Additional Interface
+
+    @property
+    def start_states(self):
+        """Tuple of raw states from which an episode may start.
+
+        These are raw environment states even when :attr:`tabular` is true. Use
+        :meth:`state2id` to convert them to integer observations.
+        """
+        return tuple(self._starts)
 
     ## Tabular access
     def states(self):
@@ -142,7 +155,19 @@ class BaseEnv(Env, metaclass=ABCMeta):
         return action_labels[int(action)]
 
     def model(self, state, action):
-        """Returns the transitions from the given state-action pair."""
+        """Return the complete transition model for a state-action pair.
+
+        Args:
+            state: Integer state ID when :attr:`tabular` is true, otherwise a raw
+                state.
+            action: Integer action ID.
+
+        Returns:
+            A four-item list ``[next_states, rewards, terminals, probabilities]``.
+            ``next_states`` is a list of IDs in tabular mode and raw states
+            otherwise. The remaining items are one-dimensional NumPy arrays in the
+            same order.
+        """
         
         if self.tabular:
             state = self.id2state(state)
