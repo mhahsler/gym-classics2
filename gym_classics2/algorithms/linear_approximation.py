@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 import gymnasium as gym
 
-from gym_classics2.utils import random_argmax
+from gym_classics2.utils import get_rng, random_argmax
 from gym_classics2.algorithms.policy import random_policy
 from gym_classics2.algorithms.schedules import Schedule, ConstantSchedule
 from gym_classics2.envs.abstract.base_env import BaseEnv as GymClassicsBaseEnv
@@ -64,7 +64,7 @@ def q_hat(s, a, w, env):
     x = state_action_features(s, a, env)
     return np.dot(w, x)
 
-def epsilon_greedy_action_w(env, w, state, epsilon = 0):
+def epsilon_greedy_action_w(env, w, state, epsilon=0, rng=None):
     """
     Get an epsilon-greedy action for a given policy.
     
@@ -72,12 +72,18 @@ def epsilon_greedy_action_w(env, w, state, epsilon = 0):
     :param env: environment instance
     :param state: the current state
     :param epsilon: the probability of taking a random action
+    :param rng: NumPy generator or integer seed
     """
     
-    if epsilon>0 and np.random.rand() < epsilon:
-        return env.action_space.sample()
+    rng = get_rng(rng)
+
+    if epsilon > 0 and rng.random() < epsilon:
+        return rng.integers(env.action_space.n)
     
-    return random_argmax([q_hat(state, a, w, env) for a in range(env.action_space.n)])
+    return random_argmax(
+        [q_hat(state, a, w, env) for a in range(env.action_space.n)],
+        rng=rng,
+    )
 
 
 def MSVE(V, V_true, weight=None):
@@ -162,7 +168,9 @@ def semi_gradient_TD0_estimation(env, policy, n, alpha, gamma, max_episode_lengt
     return w
 
 
-def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w = None, max_episode_length=1000, verbose = False, history = False):
+def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w=None,
+                          max_episode_length=1000, verbose=False,
+                          history=False, rng=None):
     """
     Semi-gradient Sarsa(0): on-policy control with function approximation.
 
@@ -191,6 +199,8 @@ def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w = None, max_episode_l
         Maximum number of time steps per episode before truncation (default 1000).
     verbose : bool, optional
         If True, prints progress diagnostics during learning (default True).
+    rng : numpy.random.Generator or int or None, optional
+        Random generator or seed for exploration and tie-breaking.
 
     Returns
     -------
@@ -201,6 +211,8 @@ def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w = None, max_episode_l
     assert gamma >= 0 and gamma <= 1, "Gamma must be in [0,1]"
     assert n > 0, "Number of episodes must be positive"
     assert max_episode_length > 0, "Max episode length must be positive"
+
+    rng = get_rng(rng)
 
     if isinstance(env.observation_space, gym.spaces.Discrete):
         warnings.warn("The environment has a discrete state space. Consider using a tabular method instead of function approximation.")
@@ -222,7 +234,7 @@ def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w = None, max_episode_l
     
     for episode in tqdm(range(n), desc="Semi-Gradient SARSA(0)", disable=verbose):
         state, _ = env.reset()
-        action = epsilon_greedy_action_w(env, w, state, epsilon(episode))
+        action = epsilon_greedy_action_w(env, w, state, epsilon(episode), rng=rng)
         done = False
 
         i = 0
@@ -241,7 +253,9 @@ def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w = None, max_episode_l
                 w += alpha(episode) * (reward - q_hat(state, action, w, env)) * x
                 
             else:
-                next_action = epsilon_greedy_action_w(env, w, next_state, epsilon(episode))
+                next_action = epsilon_greedy_action_w(
+                    env, w, next_state, epsilon(episode), rng=rng
+                )
                 w += alpha(episode) * (reward + gamma * q_hat(next_state, next_action, w, env) - q_hat(state, action, w, env)) * x
 
             if verbose:

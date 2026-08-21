@@ -3,11 +3,10 @@ It includes functions for creating random policies, encoding policies for displa
 """
 
 import numpy as np
-import random
 
 import gymnasium as gym
 
-from gym_classics2.utils import random_argmax
+from gym_classics2.utils import get_rng, random_argmax
 from gym_classics2.envs.abstract.base_env import BaseEnv as GymClassicsBaseEnv
 
 def make_multidiscrete_policy(policy, env):
@@ -25,17 +24,20 @@ def make_multidiscrete_policy(policy, env):
         raise ValueError("Unsupported environment type")
 
 
-def random_policy(env):
+def random_policy(env, rng=None):
     """
     Create a random policy for the given environment. 
-    The policy is represented as a numpy array where each entry corresponds to an action for a state. 
+    The policy is represented as a numpy array where each entry corresponds to an action for a state.
+    ``rng`` may be a NumPy generator or an integer seed.
     """
     
+    rng = get_rng(rng)
+
     if isinstance(env.observation_space, gym.spaces.Discrete):
-        return np.random.choice(env.action_space.n, size = env.observation_space.n)
+        return rng.integers(env.action_space.n, size=env.observation_space.n)
     else:
         assert isinstance(env, GymClassicsBaseEnv), "Only gym-classics environments are supported for random policies with multi-discrete state spaces."
-        return make_multidiscrete_policy(np.random.choice(env.action_space.n, size = len(env.states())), env)
+        return make_multidiscrete_policy(rng.integers(env.action_space.n, size=len(env.states())), env)
 
 # only for gym-classics environments!
 def encode_policy(env, policy, type = "text"):
@@ -57,13 +59,14 @@ def _backup(env, discount, V, s, a):
     bootstraps = (1.0 - terminals) * V[next_states]
     return np.sum(probs * (rewards + discount * bootstraps))
 
-def greedy_policy(env, V, discount=1):
+def greedy_policy(env, V, discount=1, rng=None):
     """
     Calculate the greedy policy for a given value function.
     
     :param env: the environment
     :param V: the value function as a 1-D numpy array
     :param discount: discount factor
+    :param rng: NumPy generator or integer seed used for random tie-breaking
     """
     assert isinstance(env, GymClassicsBaseEnv), "greedy_policy requires a gym-classics environment with discrete state space."
     assert isinstance(env.action_space, gym.spaces.Discrete)
@@ -71,21 +74,23 @@ def greedy_policy(env, V, discount=1):
     assert 0.0 <= discount <= 1.0
     
     policy = np.zeros(len(env.states()), dtype=np.int64)
+    rng = get_rng(rng)
 
     env = env.unwrapped
     
     for s in env.states():
         Q_values = [_backup(env, discount, V, s, a) for a in range(env.action_space.n)]
-        policy[s] = random_argmax(Q_values)
+        policy[s] = random_argmax(Q_values, rng=rng)
 
     return policy
 
-def greedy_policy_Q(env, Q, discount=1):
+def greedy_policy_Q(env, Q, discount=1, rng=None):
     """
     Calculate the greedy policy for a given value function.
     
     :param env: the environment
     :param Q: the action value function as a state-by-action numpy array
+    :param rng: NumPy generator or integer seed used for random tie-breaking
     :param discount: discount factor
     """
     
@@ -93,21 +98,24 @@ def greedy_policy_Q(env, Q, discount=1):
     assert isinstance(env.observation_space, gym.spaces.Discrete)
     assert 0.0 <= discount <= 1.0
 
-    return random_argmax(Q, axis=1)
+    return random_argmax(Q, axis=1, rng=rng)
 
-def epsilon_greedy_action(policy, state = None, epsilon = 0):
+def epsilon_greedy_action(policy, state=None, epsilon=0, rng=None):
     """
     Get an epsilon-greedy action for a given tabular policy.
     
     :param policy: the policy as a 1-D numpy array
     :param epsilon: the probability of taking a random action
     :param state: the current state
+    :param rng: NumPy generator or integer seed
     """
     
-    if epsilon>0 and np.random.rand() < epsilon:
-        return np.random.choice(len(policy)) if state is None else np.random.choice(len(policy[state]))   
+    rng = get_rng(rng)
+
+    if epsilon > 0 and rng.random() < epsilon:
+        return rng.integers(len(policy)) if state is None else rng.integers(len(policy[state]))
     
     if state is None:
-        return random_argmax(policy)
+        return random_argmax(policy, rng=rng)
     else:
-        return random_argmax(policy[state])
+        return random_argmax(policy[state], rng=rng)

@@ -18,6 +18,7 @@ import gymnasium as gym
 from gym_classics2.algorithms.linear_approximation import state_features, state_action_features, active_weights, q_hat  
 from gym_classics2.envs.abstract.base_env import BaseEnv as GymClassicsBaseEnv
 from gym_classics2.algorithms.schedules import ConstantSchedule
+from gym_classics2.utils import get_rng
 
 def h(s,a,theta,env):
     """Return the linear action preference for state ``s`` and action ``a``."""
@@ -29,7 +30,7 @@ def pi(s,theta,env):
     exp_hs = np.exp(hs)
     return exp_hs / np.sum(exp_hs)
 
-def sample_episode_approx_policy(env, pi, theta, max_episode_length=1000):
+def sample_episode_approx_policy(env, pi, theta, max_episode_length=1000, rng=None):
     """
     Sample an episode using the policy defined by pi and theta.
     
@@ -38,14 +39,16 @@ def sample_episode_approx_policy(env, pi, theta, max_episode_length=1000):
         returns a probability distribution over actions
     :param theta: the policy parameters
     :param max_episode_length: maximum number of steps to sample in the episode
+    :param rng: NumPy generator or integer seed used to sample actions
     :return: a list of (state, action, reward, next_state) tuples representing the sampled episode
     """
 
+    rng = get_rng(rng)
     s, _ = env.reset()
     episode_data = []
     
     for t in range(max_episode_length):
-        a = np.random.choice(range(env.action_space.n), p=pi(s,theta,env))
+        a = rng.choice(env.action_space.n, p=pi(s, theta, env))
         next_s, r, done, _, _ = env.step(a)
         episode_data.append((s, a, r, next_s))
         s = next_s
@@ -55,7 +58,7 @@ def sample_episode_approx_policy(env, pi, theta, max_episode_length=1000):
     
     return episode_data
 
-def choose_action_w(env, pi, theta, state):
+def choose_action_w(env, pi, theta, state, rng=None):
     """
     Choose an action based on the policy defined by pi and theta for the given state.
     
@@ -64,9 +67,11 @@ def choose_action_w(env, pi, theta, state):
         returns a probability distribution over actions 
     :param theta: the policy parameters
     :param state: the current state
+    :param rng: NumPy generator or integer seed used to sample the action
     :return: the chosen action
     """
-    return np.random.choice(env.action_space.n, p=pi(state, theta, env))
+    rng = get_rng(rng)
+    return rng.choice(env.action_space.n, p=pi(state, theta, env))
 
 def REINFORCE(
     env,
@@ -76,7 +81,8 @@ def REINFORCE(
     theta = None,
     max_episode_length=1000,
     verbose=False,
-    history=False
+    history=False,
+    rng=None,
     ):
     """REINFORCE: Monte Carlo policy gradient method with linear function approximation.
     Parameters
@@ -97,11 +103,15 @@ def REINFORCE(
         Whether to print step-by-step diagnostics.
     history : bool
         Whether to return learning history (returns, episode lengths, parameter values).    
+    rng : numpy.random.Generator or int or None
+        Random generator or seed used to sample actions.
     """
     
     assert gamma >= 0 and gamma <= 1, "gamma must be in [0  ,1]"
     assert n > 0, "number of episodes must be positive"
     assert max_episode_length > 0, "max episode length must be positive"
+
+    rng = get_rng(rng)
     
     if isinstance(env.observation_space, gym.spaces.Discrete):
         warnings.warn("The environment has a discrete state space. Consider using a tabular method instead of function approximation.")
@@ -124,7 +134,9 @@ def REINFORCE(
             print(f"Episode {episode+1}/{n}")
         
         # sample complete episode using pi (this is a MC method)
-        episode_data = sample_episode_approx_policy(env, pi, theta, max_episode_length)
+        episode_data = sample_episode_approx_policy(
+            env, pi, theta, max_episode_length, rng=rng
+        )
         
         for t in range(len(episode_data)):
             # update policy for each step in the episode using the return observed from that step on
@@ -162,7 +174,8 @@ def AC(
     gamma,
     max_episode_length=1000,
     verbose=False,
-    history=False
+    history=False,
+    rng=None,
     ):
     """Actor-Critic: Policy gradient method with linear function approximation and TD learning for the value function.
     
@@ -183,6 +196,8 @@ def AC(
         Whether to print step-by-step diagnostics.
     history : bool
         Whether to return learning history (returns, episode lengths, parameter values).
+    rng : numpy.random.Generator or int or None
+        Random generator or seed used to sample actions.
         
         Returns
         -------
@@ -201,6 +216,8 @@ def AC(
     assert gamma >= 0 and gamma <= 1, "gamma must be in [0  ,1]"
     assert n > 0, "number of episodes must be positive"
     assert max_episode_length > 0, "max episode length must be positive"
+
+    rng = get_rng(rng)
     
     if isinstance(env.observation_space, gym.spaces.Discrete):
         warnings.warn("The environment has a discrete state space. Consider using a tabular method instead of function approximation.")
@@ -238,7 +255,7 @@ def AC(
         
         while not done and  i < max_episode_length:
             # use actor to determine next action
-            a = np.random.choice(env.action_space.n, p=pi(state, theta, env))
+            a = rng.choice(env.action_space.n, p=pi(state, theta, env))
 
             # execute action
             next_state, r, done, _, _ = env.step(a)

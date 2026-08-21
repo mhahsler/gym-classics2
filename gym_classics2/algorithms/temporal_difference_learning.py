@@ -4,17 +4,16 @@ methods in reinforcement learning for learning value functions and optimal polic
 model of the environment.
 """
 
-import random
 import numpy as np
 from tqdm import tqdm
 
 import gymnasium as gym
 
-from gym_classics2.utils import random_argmax
-from gym_classics2.algorithms.policy import random_policy
+from gym_classics2.utils import get_rng, random_argmax
 from gym_classics2.algorithms.schedules import Schedule, ConstantSchedule
 
-def Sarsa_0(env, discount, alpha, epsilon, Q=None, n = 100, verbose = False, history = False):
+def Sarsa_0(env, discount, alpha, epsilon, Q=None, n=100, verbose=False,
+            history=False, rng=None):
     """Learn action values with one-step on-policy Sarsa.
 
     Args:
@@ -31,6 +30,7 @@ def Sarsa_0(env, discount, alpha, epsilon, Q=None, n = 100, verbose = False, his
         n: Number of training episodes.
         verbose: Print individual updates when true.
         history: Retain Q arrays, discounted episode returns, and episode lengths.
+        rng: NumPy generator or integer seed for exploration and tie-breaking.
 
     Returns:
         The learned Q array. If ``history=True``, returns ``(Q, history_dict)``;
@@ -40,6 +40,8 @@ def Sarsa_0(env, discount, alpha, epsilon, Q=None, n = 100, verbose = False, his
         AssertionError: If the observation space is not discrete.
     """
     assert isinstance(env.observation_space, gym.spaces.Discrete), "Tabular methods require discrete state space."  
+
+    rng = get_rng(rng)
         
     if not isinstance(alpha, Schedule):
         alpha = ConstantSchedule(alpha)
@@ -62,10 +64,10 @@ def Sarsa_0(env, discount, alpha, epsilon, Q=None, n = 100, verbose = False, his
         if verbose:
             print(f"--- Episode {i} ---")      
           
-        if (random.random() > epsilon(i)):
-            a = random_argmax(Q[s,:])
+        if rng.random() > epsilon(i):
+            a = random_argmax(Q[s, :], rng=rng)
         else:
-            a = np.random.choice(env.action_space.n)  
+            a = rng.integers(env.action_space.n)
           
         t = 0
         done = False
@@ -76,10 +78,10 @@ def Sarsa_0(env, discount, alpha, epsilon, Q=None, n = 100, verbose = False, his
             t += 1
             
         
-            if (random.random() > epsilon(i)):
-                ap = random_argmax(Q[sp,:])
+            if rng.random() > epsilon(i):
+                ap = random_argmax(Q[sp, :], rng=rng)
             else:
-                ap = np.random.choice(env.action_space.n) 
+                ap = rng.integers(env.action_space.n)
         
             Q[s,a] = Q[s,a] + alpha(i) * (r + discount * Q[sp,ap] - Q[s,a])
             
@@ -102,7 +104,8 @@ def Sarsa_0(env, discount, alpha, epsilon, Q=None, n = 100, verbose = False, his
     return Q
 
 
-def Q_learning(env, discount, alpha, epsilon, Q=None, n = 100, verbose = False, history = False):
+def Q_learning(env, discount, alpha, epsilon, Q=None, n=100, verbose=False,
+               history=False, rng=None):
     """Learn action values with one-step off-policy Q-learning.
 
     Args:
@@ -120,6 +123,7 @@ def Q_learning(env, discount, alpha, epsilon, Q=None, n = 100, verbose = False, 
         verbose: Print progress information when true.
         history: Retain Q arrays, discounted episode returns, episode lengths, and
             state-visit counts.
+        rng: NumPy generator or integer seed for exploration and tie-breaking.
 
     Returns:
         The learned Q array. If ``history=True``, returns ``(Q, history_dict)``;
@@ -130,6 +134,8 @@ def Q_learning(env, discount, alpha, epsilon, Q=None, n = 100, verbose = False, 
         AssertionError: If the observation space is not discrete.
     """
     assert isinstance(env.observation_space, gym.spaces.Discrete), "Tabular methods require discrete state space."  
+
+    rng = get_rng(rng)
     
     if not isinstance(alpha, Schedule):
         alpha = ConstantSchedule(alpha)
@@ -159,10 +165,10 @@ def Q_learning(env, discount, alpha, epsilon, Q=None, n = 100, verbose = False, 
         t = 0   
         while not done:
             # epsilon-greedy choice w.r.t. Q 
-            if (random.random() > epsilon(i)):
-                a = random_argmax(Q[s,:])
+            if rng.random() > epsilon(i):
+                a = random_argmax(Q[s, :], rng=rng)
             else:
-                a = np.random.choice(env.action_space.n)
+                a = rng.integers(env.action_space.n)
             
             sp, r, done, _, _ = env.step(a)
         

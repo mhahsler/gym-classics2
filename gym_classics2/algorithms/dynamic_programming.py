@@ -148,7 +148,7 @@ def policy_improvement(env, discount, policy, V_policy, precision=1e-3):
 
     return policy, stable
 
-def policy_iteration(env, discount, precision=1e-3, max_backups=1000, history = False, verbose = False):
+def policy_iteration(env, discount, precision=1e-3, max_backups=1000, history=False, verbose=False, rng=None):
     """Performs policy iteration for the given environment.
 
     Args:
@@ -158,6 +158,7 @@ def policy_iteration(env, discount, precision=1e-3, max_backups=1000, history = 
         max_backups: Maximum number of iterations used in policy evaluation. Note: this prevents an infinite loop for policies that do not reach a terminal state.
         history: If True, returns lists of intermediate policies and value functions.
         verbose: If True, prints progress information.
+        rng: NumPy generator or integer seed used to initialize the policy.
 
     Returns:
         The optimal policy. If history is True, returns a tuple (policy_list, V_list) containing lists of intermediate policies and value functions.
@@ -167,7 +168,7 @@ def policy_iteration(env, discount, precision=1e-3, max_backups=1000, history = 
     assert 0.0 <= discount <= 1.0
     assert precision > 0.0
 
-    policy = random_policy(env)
+    policy = random_policy(env, rng=rng)
 
     if history:
         pol_list = []

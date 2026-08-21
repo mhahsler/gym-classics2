@@ -1,7 +1,6 @@
 from abc import ABCMeta, abstractmethod
 import numpy as np
 import gym_classics2
-import random
 
 from gymnasium import Env
 from gymnasium.spaces import Discrete
@@ -70,7 +69,7 @@ class BaseEnv(Env, metaclass=ABCMeta):
         """Start a new episode and return ``(observation, info)``."""
         super().reset(seed=seed)
 
-        self.state = random.choice(self._starts)
+        self.state = self._starts[self.np_random.integers(len(self._starts))]
         observation = self.state
         info = {}
         

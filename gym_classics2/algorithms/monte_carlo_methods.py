@@ -3,7 +3,6 @@ with discrete state spaces.
 """
 
 import numpy as np
-import random
 from collections import defaultdict
 from tqdm import tqdm
 
@@ -12,7 +11,7 @@ import gymnasium as gym
 from gym_classics2.envs.abstract.gridworld import Gridworld
 from gym_classics2.envs.abstract.base_env import BaseEnv
 from gym_classics2.algorithms.policy import random_policy, make_multidiscrete_policy
-from gym_classics2.utils import random_argmax
+from gym_classics2.utils import get_rng, random_argmax
 
 def states(env):
     """Returns a list of all states in the environment."""
@@ -26,7 +25,8 @@ def states(env):
         raise ValueError("Unsupported observation space type for state enumeration.")
 
 
-def sample_episode(env, policy = None, start_state = None, start_action = None, epsilon = 0, max_len = 1000, verbose = False):
+def sample_episode(env, policy=None, start_state=None, start_action=None, epsilon=0,
+                   max_len=1000, verbose=False, rng=None):
     """
     Samples an episode from the environment using the given policy and starting conditions.
     
@@ -39,6 +39,7 @@ def sample_episode(env, policy = None, start_state = None, start_action = None, 
         epsilon: The probability of taking a random action instead of the policy's action at each step (for epsilon-greedy exploration).
         max_len: The maximum length of the episode to prevent infinite loops.
         verbose: If True, prints the state transitions and rewards for each step in the episode.
+        rng: NumPy generator or integer seed for policy and exploration choices.
     
     Returns:
         A list of (state, action, reward, next_state) tuples representing the episode. 
@@ -51,8 +52,10 @@ def sample_episode(env, policy = None, start_state = None, start_action = None, 
     assert 0.0 <= epsilon <= 1.0
     assert max_len > 0
     
+    rng = get_rng(rng)
+
     if policy is None:
-        policy = random_policy(env)
+        policy = random_policy(env, rng=rng)
         epsilon = 1.0
         if verbose:
             print("*** No policy given, sampling using random actions!")
@@ -79,9 +82,8 @@ def sample_episode(env, policy = None, start_state = None, start_action = None, 
         a = policy[s]
         
         # epsilon greedy choice?
-        if epsilon > 0:
-            if (random.random() < epsilon):
-                a = env.action_space.sample()
+        if epsilon > 0 and rng.random() < epsilon:
+            a = rng.integers(env.action_space.n)
         
         # for exploring starts
         if step == 0 and not start_action is None:
@@ -100,18 +102,20 @@ def sample_episode(env, policy = None, start_state = None, start_action = None, 
     return(episode)
 
 
-def on_policy_state_distribution(env, pol, discount = 1, epsilon = 0, n = 100, verbose = False):
-    """Estimate the (discounted) state distribution of a policy by sampling episodes."""
+def on_policy_state_distribution(env, pol, discount=1, epsilon=0, n=100,
+                                 verbose=False, rng=None):
+    """Estimate a policy's state distribution using ``rng`` for exploration."""
     
     assert isinstance(env.observation_space, gym.spaces.Discrete), "Tabular methods require discrete state space."   
     assert 0.0 <= epsilon <= 1.0
     assert 0.0 < discount <= 1.0
     assert n > 0
     
+    rng = get_rng(rng)
     state_counts = np.zeros(env.observation_space.n)
     
     for _ in tqdm(range(n), desc="Sampling Episodes", disable=verbose):
-        episode = np.array(sample_episode(env, policy=pol, epsilon = epsilon))
+        episode = np.array(sample_episode(env, policy=pol, epsilon=epsilon, rng=rng))
         states = np.append(episode[:,0], episode[-1,3])
         discounts = np.array([discount**i for i in range(len(states))])
         for s, d in zip(states, discounts):
@@ -121,7 +125,8 @@ def on_policy_state_distribution(env, pol, discount = 1, epsilon = 0, n = 100, v
     return state_prob
 
 
-def MC_prediction(env, policy, discount, n = 100, max_episode_len = 100, verbose = False):
+def MC_prediction(env, policy, discount, n=100, max_episode_len=100,
+                  verbose=False, rng=None):
     """Estimate a policy's state values with first-visit Monte Carlo prediction.
 
     Args:
@@ -131,6 +136,7 @@ def MC_prediction(env, policy, discount, n = 100, max_episode_len = 100, verbose
         n: Number of episodes to sample.
         max_episode_len: Maximum sampled steps per episode.
         verbose: Print episode progress when true.
+        rng: NumPy generator or integer seed for episode sampling.
 
     Returns:
         A NumPy value array with one entry per state. Unvisited states contain
@@ -140,13 +146,14 @@ def MC_prediction(env, policy, discount, n = 100, max_episode_len = 100, verbose
     assert n > 0
     assert max_episode_len > 0
     
+    rng = get_rng(rng)
     Returns = defaultdict(list) # a list for each s
     
     for i in tqdm(range(n), desc="MC Prediction", disable=verbose):
         if verbose:
             print("episode", i," of ", n)
     
-        episode = sample_episode(env, policy, max_len=max_episode_len)
+        episode = sample_episode(env, policy, max_len=max_episode_len, rng=rng)
         G = 0
         
         # for first visit check for s
@@ -165,7 +172,8 @@ def MC_prediction(env, policy, discount, n = 100, max_episode_len = 100, verbose
     return Vs
 
 # this version does not use incremental updates and is very slow!
-def MC_control_ES_textbook(env, discount, n = 100, Q = None, max_episode_len = 100, history = False, verbose = False): 
+def MC_control_ES_textbook(env, discount, n=100, Q=None, max_episode_len=100,
+                           history=False, verbose=False, rng=None):
     """Monte Carlo control with exploring starts and stored sample returns.
 
     This direct textbook implementation stores every first-visit return. Prefer
@@ -180,6 +188,7 @@ def MC_control_ES_textbook(env, discount, n = 100, Q = None, max_episode_len = 1
         max_episode_len: Maximum sampled steps per episode.
         history: Retain intermediate policies, Q arrays, episodes, and returns.
         verbose: Print episode details; values greater than one print transitions.
+        rng: NumPy generator or integer seed for all algorithm choices.
 
     Returns:
         ``(policy, Q)``. If ``history=True``, a third item contains the history
@@ -190,7 +199,8 @@ def MC_control_ES_textbook(env, discount, n = 100, Q = None, max_episode_len = 1
     assert max_episode_len > 0
     assert Q is None or Q.shape == (len(env.states()), env.action_space.n)
     
-    policy = random_policy(env)
+    rng = get_rng(rng)
+    policy = random_policy(env, rng=rng)
     
     if Q is None:
         Q = np.zeros((len(env.states()), env.action_space.n))
@@ -212,10 +222,12 @@ def MC_control_ES_textbook(env, discount, n = 100, Q = None, max_episode_len = 1
             print("episode", i," of ", n)
         
         # Sample starting (s,a)
-        s = env.observation_space.sample()
-        a = env.action_space.sample()
+        s = rng.integers(env.observation_space.n)
+        a = rng.integers(env.action_space.n)
         
-        episode = sample_episode(env, policy, start_state = s, start_action = a, max_len=max_episode_len, verbose = verbose >1)
+        episode = sample_episode(env, policy, start_state=s, start_action=a,
+                                 max_len=max_episode_len, verbose=verbose > 1,
+                                 rng=rng)
         G = 0
         
         # for first visit check for (s,a)
@@ -232,7 +244,7 @@ def MC_control_ES_textbook(env, discount, n = 100, Q = None, max_episode_len = 1
 
                 # update policy
                 Q[s,a] = np.mean(Returns[(s,a)])
-                policy[s] = random_argmax(Q[s,:])
+                policy[s] = random_argmax(Q[s, :], rng=rng)
                 
         if history:
             pol_list.append(policy.copy())
@@ -247,7 +259,8 @@ def MC_control_ES_textbook(env, discount, n = 100, Q = None, max_episode_len = 1
 
 
 # incremental version of MC control with exploring starts. This is more efficient and can be used for infinite horizon problems. It gives the same results as the non-incremental version, but it does not store all returns in memory.
-def MC_control_ES(env, discount, n=100, Q=None, max_episode_len=100, history=False, verbose=False):
+def MC_control_ES(env, discount, n=100, Q=None, max_episode_len=100,
+                  history=False, verbose=False, rng=None):
     """Monte Carlo Control with Exploring Starts (incremental version).
     This algorithm estimates the optimal action-value function Q and the corresponding greedy policy by sampling episodes with exploring starts. It uses incremental updates to compute the average returns for each (s,a) pair, which is more memory efficient than storing all returns.
     Args: env: The environment to interact with. Must have discrete state and action spaces.
@@ -258,6 +271,7 @@ def MC_control_ES(env, discount, n=100, Q=None, max_episode_len=100, history=Fal
         history: If True, the function will return the history of policies, Q-values, and
                  and episodes for each iteration. This can be useful for analysis and visualization, but it will consume more memory.
         verbose: If True, the function will print progress and episode details. If verbose > 1, it will also print the state transitions and rewards for each step in the episode.
+        rng: NumPy generator or integer seed for all algorithm choices.
     Returns:    If history is False: A tuple (policy, Q) where policy is the learned greedy policy and Q is the learned action-value function.
         If history is True: A tuple (pol_list, Q_list, ep_list) where pol_list is a list of policies for each iteration, Q          
         is a list of Q-value functions for each iteration, and ep_list is a list of episodes sampled in each iteration.
@@ -268,7 +282,8 @@ def MC_control_ES(env, discount, n=100, Q=None, max_episode_len=100, history=Fal
     assert max_episode_len > 0
     assert Q is None or Q.shape == (env.observation_space.n, env.action_space.n)
 
-    policy = random_policy(env)
+    rng = get_rng(rng)
+    policy = random_policy(env, rng=rng)
 
     if Q is None:
         Q = np.zeros((env.observation_space.n, env.action_space.n))
@@ -289,8 +304,8 @@ def MC_control_ES(env, discount, n=100, Q=None, max_episode_len=100, history=Fal
             print("episode", i, "of", n)
 
         # Exploring starts
-        s = env.observation_space.sample()
-        a = env.action_space.sample()
+        s = rng.integers(env.observation_space.n)
+        a = rng.integers(env.action_space.n)
 
         episode = sample_episode(
             env,
@@ -298,7 +313,8 @@ def MC_control_ES(env, discount, n=100, Q=None, max_episode_len=100, history=Fal
             start_state=s,
             start_action=a,
             max_len=max_episode_len,
-            verbose=verbose > 1
+            verbose=verbose > 1,
+            rng=rng,
         )
 
         G = 0
@@ -317,7 +333,7 @@ def MC_control_ES(env, discount, n=100, Q=None, max_episode_len=100, history=Fal
                 Q[s, a] += (G - Q[s, a]) / N[s, a]
 
                 # Improve policy greedily
-                policy[s] = random_argmax(Q[s, :])
+                policy[s] = random_argmax(Q[s, :], rng=rng)
 
         if history:
             pol_list.append(policy.copy())

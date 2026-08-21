@@ -9,14 +9,6 @@ GitHub:
 python -m pip install "gym-classics2 @ git+https://github.com/mhahsler/gym-classics2.git"
 ```
 
-For development, clone the repository and install it in editable mode:
-
-```bash
-git clone https://github.com/mhahsler/gym-classics2.git
-cd gym-classics2
-python -m pip install -e .
-```
-
 ## Run an environment
 
 Registration connects the package's environment IDs to Gymnasium. It only
@@ -24,16 +16,21 @@ needs to happen once in a Python process.
 
 ```python
 import gymnasium as gym
+import numpy as np
 import gym_classics2
 
 gym_classics2.register()
+
+seed = 42
+rng = np.random.default_rng(seed)
+
 env = gym.make("ClassicGridworld-v1", tabular=True)
 
-observation, info = env.reset(seed=42)
+observation, info = env.reset(seed=seed)
 terminated = truncated = False
 
 while not (terminated or truncated):
-    action = env.action_space.sample()
+    action = rng.integers(env.action_space.n)
     observation, reward, terminated, truncated, info = env.step(action)
 
 env.close()

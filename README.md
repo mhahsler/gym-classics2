@@ -35,14 +35,18 @@ Register the environments, create one with Gymnasium, and use the standard
 
 ```python
 import gymnasium as gym
+import numpy as np
 import gym_classics2
 gym_classics2.register()
 
+seed = 42
+rng = np.random.default_rng(seed)
+
 env = gym.make("ClassicGridworld-v1", tabular=True)
 
-state, info = env.reset(seed=42)
+state, info = env.reset(seed=seed)
 for t in range(100):
-    action = env.action_space.sample()
+    action = rng.integers(env.action_space.n)
     next_state, reward, terminated, truncated, info = env.step(action)
     done = terminated or truncated
     print(t, state, action, reward, next_state, done)
