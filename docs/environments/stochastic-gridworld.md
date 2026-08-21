@@ -66,6 +66,7 @@ class StochasticClassicGridworld(Gridworld):
     # Used by the environment at the beginning of the step function to determine value of all random events.
     # Here, the random event is that the environment executes a potentially different
     # noisy action instead of the action the agent asked for.
+    # Note: self.np_random.choice uses the environment's random number generator.
     # We return the actually executed noisy action for the step as a list of random elements.
     def _sample_random_elements(self, state, action):
         offset = self.np_random.choice([-1, 0, 1], p=[0.1, 0.8, 0.1])

@@ -19,8 +19,7 @@ nav:
       - Model access: environments/model-access.md
       - Create a stochastic Gridworld: environments/stochastic-gridworld.md
   - Algorithms:
-      - Choosing an algorithm: algorithms/overview.md
-      - Dynamic programming: algorithms/dynamic-programming.md
+      - Overview: algorithms/overview.md
   - Tutorials:
       - Solve Classic Gridworld: tutorials/gridworld.md
       - Monte Carlo on Frozen Lake: tutorials/frozen-lake.md
