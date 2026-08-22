@@ -20,6 +20,7 @@ nav:
       - Create a stochastic Gridworld: environments/stochastic-gridworld.md
   - Algorithms:
       - Overview: algorithms/overview.md
+      - Reproducible results: algorithms/reproducibility.md
   - Tutorials:
       - Solve Classic Gridworld: tutorials/gridworld.md
       - Monte Carlo on Frozen Lake: tutorials/frozen-lake.md
