@@ -31,23 +31,60 @@ marks a terminal goal, `X` marks a blocked cell, and a space marks a traversable
 cell. Coordinates start at `(0, 0)` in the lower-left corner.
 
 ```text
-|   G|  y = 2: positive terminal at (3, 2)
-| X G|  y = 1: block at (1, 1), negative terminal at (3, 1)
-|S   |  y = 0: start at (0, 0)
+|   G|
+| X G|
+|S   |
 ```
 
 Both terminal cells use `G` because the layout describes termination. The
-reward function distinguishes the positive goal from the negative trap.
+reward function distinguishes the positive goal with a reward of +1 (top-right
+corner) from the negative trap with a reward of -1 directly below it.
 
 ## Implement the environment from `Gridworld`
 
-The complete class explicitly implements both ways the dynamics are used:
+The `gym_classics2` base class provides two public interfaces to the dynamics:
 
-- `model()` provides model access and enumerates every possible executed action.
-- `step()` sample access executing one action using the model.
+- `model()` enumerates every possible outcome for a state-action pair.
+- `step()` samples and executes one outcome.
 
+The two interfaces use the following implementation methods:
+
+| Method | Model component | Role |
+| --- | --- | --- |
+| `_sample_random_elements` | Samples \(p(\tilde a\mid a)\) | Chooses one executed action when `step()` is called |
+| `_next_state` | \(s'\) and \(p(\tilde a\mid a)\) | Returns the resulting state and probability of that random event |
+| `_reward` | \(R(s,a,s')\) | Assigns the reward associated with the transition |
+| `_done` | Terminal indicator | Identifies transitions after which no future reward is available |
+| `_generate_transitions` | Full \(p(s',r\mid s,a)\) | Enumerates all random events for planning algorithms |
+
+
+### Step interface
+
+The standard Gymnasium `step()` interface calls the implementation method in the following order:
+
+1. `_sample_random_elements`
+2. `_next_state`
+3. `_reward`
+4. `_done`
+
+### Model interface
+
+`model(state, action)` collects tuples from `_generate_transitions` into four
+parallel sequences and checks that the probabilities are nonnegative and sum to
+one.
+
+!!! note "Different random events can produce the same next state"
+
+    At a boundary, both `left` and `down` might leave the agent in the same
+    cell. The model can contain separate rows for those random events. To obtain
+    a single value for \(p(s',r\mid s,a)\), sum the probabilities of rows with
+    identical `(next_state, reward)` values.
+
+### Example
 
 ```python
+import gymnasium as gym
+
 from gym_classics2.envs.abstract.gridworld import Gridworld
 
 
@@ -102,52 +139,27 @@ class StochasticClassicGridworld(Gridworld):
             for i in [-1, 0, 1]:
                 noisy_action = (action + i) % self.action_space.n
                 yield self._deterministic_step(state, action, noisy_action)
+
+gym.register(
+    id="TutorialStochasticGridworld-v0",
+    entry_point=StochasticClassicGridworld,
+)
+
+print(gym.spec("TutorialStochasticGridworld-v0").id)
 ```
-
-## How the methods construct \(p(s',r\mid s,a)\)
-
-`Gridworld` supplies deterministic movement, coordinate clamping, and blocked
-cell handling. The subclass supplies the random action and reward model.
-
-| Method | Model component | Role |
-| --- | --- | --- |
-| `_sample_random_elements` | Samples \(p(\tilde a\mid a)\) | Chooses one executed action when `step()` is called |
-| `_next_state` | \(s'\) and \(p(\tilde a\mid a)\) | Returns the resulting state and probability of that random event |
-| `_reward` | \(R(s,a,s')\) | Assigns the reward associated with the transition |
-| `_done` | Terminal indicator | Identifies transitions after which no future reward is available |
-| `_generate_transitions` | Full \(p(s',r\mid s,a)\) | Enumerates all random events for planning algorithms |
-
-For each enumerated executed action, the inherited `_deterministic_step` helper
-calls `_next_state`, `_reward`, and `_done`, producing
 
 ```text
-(next_state, reward, terminal, probability)
+TutorialStochasticGridworld-v0
 ```
 
-`step()` calls 
-1. `_sample_random_elements`
-2. `_next_state`
-3. `_reward`
-4. `_done`
+#### Sample a transition with `step()`
 
-`model(state, action)` collects tuples from `_generate_transitions` into four
-parallel sequences and checks that the probabilities are nonnegative and sum to
-one.
-
-!!! note "Different random events can produce the same next state"
-
-    At a boundary, both `left` and `down` might leave the agent in the same
-    cell. The model can contain separate rows for those random events. To obtain
-    a single value for \(p(s',r\mid s,a)\), sum the probabilities of rows with
-    identical `(next_state, reward)` values.
-
-## Sample a transition with `step()`
-
-The class can be instantiated directly. Set `tabular=True` when using the
-included tabular algorithms.
+The registered class can be instantiated with `gym.make`. Set `tabular=True`
+when using the included tabular algorithms. Unwrap the environment to access
+the package-specific model interface.
 
 ```python
-env = StochasticClassicGridworld(tabular=True)
+env = gym.make("TutorialStochasticGridworld-v0", tabular=True).unwrapped
 
 state, info = env.reset(seed=42)
 action = env.action2id("up")
@@ -155,12 +167,22 @@ next_state, reward, terminated, truncated, info = env.step(action)
 
 print("state:", env.id2state(state))
 print("next state:", env.id2state(next_state))
-env.close()
+print("reward:", reward)
+print("terminated:", terminated)
+print("truncated:", truncated)
 ```
 
-## Access the model with `model()`
+```text
+state: (0, 0)
+next state: (0, 1)
+reward: -0.04
+terminated: False
+truncated: False
+```
 
-Produce all possible transition in a given state for a given action.
+#### Access the model with `model()`
+
+Produce all possible transitions from a given state for a given action.
 
 ```python
 state = env.state2id((0, 0))
@@ -172,6 +194,8 @@ for next_state, reward, terminal, probability in zip(
     next_states, rewards, terminals, probabilities
 ):
     print(env.id2state(next_state), reward, terminal, probability)
+
+env.close()
 ```
 
 The output is:
@@ -185,22 +209,3 @@ The output is:
 For this state and action, these rows are precisely the nonzero entries of
 \(p(s',r\mid s=(0,0),a=\text{up})\). The first outcome stays at `(0, 0)`
 because the unintended `left` action hits the boundary.
-
-## Optional Gymnasium registration
-
-Direct construction is simplest during development. To use `gym.make`, register
-the class once in the current Python process:
-
-```python
-import gymnasium as gym
-
-gym.register(
-    id="TutorialStochasticGridworld-v0",
-    entry_point=StochasticClassicGridworld,
-)
-
-env = gym.make("TutorialStochasticGridworld-v0", tabular=True)
-```
-
-Use a unique ID to avoid colliding with an environment registered by another
-package.
