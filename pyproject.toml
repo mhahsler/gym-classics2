@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=68,<85"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -22,21 +22,21 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-  "gymnasium>=0.29",
-  "matplotlib>=3.6",
-  "numpy>=1.23",
-  "pygame>=2.1",
-  "tqdm>=4.64",
+  "gymnasium>=1.0,<2",
+  "matplotlib>=3.8,<4",
+  "numpy>=1.26,<3",
+  "pygame>=2.5,<3",
+  "tqdm>=4.66,<5",
 ]
 
 [project.optional-dependencies]
-notebooks = ["ipython>=8", "jupyter>=1"]
-scipy = ["scipy>=1.9"]
+notebooks = ["ipython>=8,<10", "jupyter>=1,<2"]
+scipy = ["scipy>=1.12,<2"]
 docs = [
-  "mkdocs-material>=9",
-  "mkdocstrings[python]>=0.24",
+  "mkdocs-material>=9,<10",
+  "mkdocstrings[python]>=0.24,<2",
 ]
-test = ["pytest>=7"]
+test = ["pytest>=7,<10"]
 
 [project.urls]
 Homepage = "https://github.com/mhahsler/gym-classics2"
