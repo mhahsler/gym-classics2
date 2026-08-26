@@ -7,7 +7,6 @@ from gymnasium.spaces import MultiDiscrete
 import numpy as np
 
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 import matplotlib.colors as colors
 
 # we need to overwrite:
@@ -369,7 +368,7 @@ def _image(m, labels=None, extra = None, title=None, cmap = 'auto', clim = None,
             else:
                 cmap = "Reds"
 
-        cmap = cm.get_cmap(cmap).copy() 
+        cmap = plt.colormaps[cmap].copy()
         cmap.set_bad(color='black')
     
     row_labels = range(m.shape[0])

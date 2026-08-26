@@ -1,7 +1,6 @@
 # Utilities for gym_classic gridworld environments
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 
 # for animation
 from matplotlib import animation, rc
@@ -30,7 +29,7 @@ def gridworld_animate(env, Vs, policies = None, interval = 1000, repeat=False, c
         vmin = clim[0]
         vmax = clim[1]
      
-    cmap = cm.get_cmap(cmap).copy() 
+    cmap = plt.colormaps[cmap].copy()
     cmap.set_bad(color='black')
     
     mazes = [env.to_matrix(V) for V in Vs]
