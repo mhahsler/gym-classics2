@@ -7,7 +7,31 @@ from gymnasium.spaces import Discrete
 
 
 class BaseEnv(Env, metaclass=ABCMeta):
-    """Abstract base class for shared functionality between all environments."""
+    """Base class for finite Gymnasium environments with explicit model access.
+
+    ``BaseEnv`` supplies seeded ``reset`` and ``step`` methods, a discrete action
+    space, optional integer encoding of states, and the complete transition model
+    returned by ``model``. Subclasses define the environment dynamics through
+    ``_next_state``, ``_reward``, ``_done``, and ``_generate_transitions``. Each
+    generated transition has the form ``(next_state, reward, terminated,
+    probability)``.
+
+    Args:
+        starts: Raw states from which an episode may start.
+        action_labels: Labels whose positions define the integer action IDs.
+        tabular: If true, observations are consecutive integer state IDs. If
+            false, subclasses return raw states and must define a suitable
+            observation space.
+        reachable_states: All reachable raw states. If omitted, they are
+            discovered from ``starts`` using the transition model.
+
+    Attributes:
+        action_space: Discrete Gymnasium action space.
+        observation_space: Discrete state space in tabular mode; otherwise
+            defined by the subclass.
+        state: Current raw environment state, or ``None`` before the first reset.
+        tabular: Whether observations use integer state IDs.
+    """
 
     # needs to provide the following Gymnasium Env functions:
     # - reset
@@ -108,7 +132,7 @@ class BaseEnv(Env, metaclass=ABCMeta):
         """Tuple of raw states from which an episode may start.
 
         These are raw environment states even when :attr:`tabular` is true. Use
-        :meth:`state2id` to convert them to integer observations.
+        ``state2id`` to convert them to integer observations.
         """
         return tuple(self._starts)
 

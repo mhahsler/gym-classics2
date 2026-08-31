@@ -26,24 +26,39 @@ def _load_pygame():
 # * _generate_transitions
 
 class Gridworld(BaseEnv):
-    """Abstract class for creating gridworld-type environments."""
+    """Finite rectangular gridworld constructed from an ASCII layout.
+
+    Layout rows are written from top to bottom; raw states are ``(x, y)``
+    coordinates with ``(0, 0)`` in the lower-left corner. ``S`` marks a start,
+    ``G`` a terminal goal, ``X`` a blocked cell, and a space a traversable cell.
+    Other characters are traversable labels retained for plotting. Optional ``|``
+    characters are ignored when the layout is parsed.
+
+    The default actions move up, right, down, and left. An action that would cross
+    the boundary or enter a blocked cell leaves the agent in place. Entering a goal
+    yields ``goal_reward`` and terminates the episode; other transitions yield
+    ``step_reward``.
+
+    Args:
+        layout_string: Rectangular ASCII representation of the grid.
+        action_labels: Labels for the four actions, ordered as up, right, down,
+            and left.
+        goal_reward: Reward for a transition into a goal cell.
+        step_reward: Reward for any other transition.
+        tabular: If true, observations are integer state IDs. If false, they are
+            raw ``(x, y)`` coordinates.
+        render_mode: ``None`` to disable rendering, ``"human"`` for a window, or
+            ``"rgb_array"`` for an RGB image returned by ``render``.
+
+    Note:
+        Rendering requires the optional ``render`` dependency extra.
+    """
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
 
     def __init__(self, layout_string, action_labels = ["up", "right", "down", "left"], 
                  goal_reward = 1.0, step_reward = 0.0, 
                  tabular = True, render_mode=None):
-        """Initializes the gridworld environment from a layout string. The layout string should be a rectangular grid of characters, where each character represents a type of cell:
-        - 'S': Start (may be more than one)
-        - 'G': Goal (may be more than one)
-        - 'X': Block (agent cannot occupy these cells)
-        - ' ': Empty (agent can occupy these cells)
-        - All other characters are treated as empty cells that the agent can occupy.
-        
-        param layout_string: The string representation of the gridworld layout.
-        param action_labels: The labels for the actions. Defaults to ["up", "right", "down", "left"]. You can specify additional labels for extra actions.
-        param tabular: If True, the environment will use a tabular state representation (i.e., states are represented as integer IDs). 
-            If False, states will be represented as their (x,y) coordinates. Defaults to True.
-        """
+        """Initialize the gridworld from ``layout_string``."""
         
         self._goal_reward = goal_reward
         self._step_reward = step_reward

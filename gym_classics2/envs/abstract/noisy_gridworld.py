@@ -1,12 +1,27 @@
 from gym_classics2.envs.abstract.gridworld import Gridworld
 
 class NoisyGridworld(Gridworld):
-    """Abstract class for creating gridworld-type environments with the classic
-    80-10-10 stochastic dynamics:
+    """Gridworld with classic 80-10-10 stochastic action outcomes.
 
-        - 80% chance: action succeeds
-        - 10% chance: action is rotated counter-clockwise
-        - 10% chance: action is rotated clockwise
+    The requested action is executed with probability 0.8. With probability 0.1
+    each, it is instead rotated 90 degrees clockwise or counterclockwise. The
+    resulting move follows the boundary, blocking, reward, and termination rules
+    defined by ``Gridworld``. The ``model`` method enumerates all three
+    possible outcomes, including duplicate next states when movement is blocked.
+
+    Args:
+        layout_string: Rectangular ASCII representation of the grid.
+        action_labels: Labels for the four actions, ordered as up, right, down,
+            and left.
+        goal_reward: Reward for a transition into a goal cell.
+        step_reward: Reward for any other transition.
+        tabular: If true, observations are integer state IDs. If false, they are
+            raw ``(x, y)`` coordinates.
+        render_mode: ``None`` to disable rendering, ``"human"`` for a window, or
+            ``"rgb_array"`` for an RGB image returned by ``render``.
+
+    Note:
+        Rendering requires the optional ``render`` dependency extra.
     """
 
     def _sample_random_elements(self, state, action):

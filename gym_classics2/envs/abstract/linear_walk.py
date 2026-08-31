@@ -2,7 +2,22 @@ from gym_classics2.envs.abstract.base_env import BaseEnv
 
 
 class LinearWalk(BaseEnv):
-    """Abstract class for creating 1-dimensional linear walks."""
+    """Finite one-dimensional walk with terminal outcomes at both ends.
+
+    Raw states are integer positions from ``0`` through ``length - 1``. Every
+    episode starts at the center position. Action ``0`` moves left and action ``1``
+    moves right; movement is deterministic. Attempting to move left from position
+    ``0`` or right from position ``length - 1`` terminates the episode and yields
+    the corresponding boundary reward. All other transitions have reward zero.
+
+    Observations are consecutive integer state IDs. For this environment, each ID
+    is equal to its raw position.
+
+    Args:
+        length: Odd number of nonterminal positions in the walk.
+        left_reward: Reward for terminating beyond the left boundary.
+        right_reward: Reward for terminating beyond the right boundary.
+    """
 
     def __init__(self, length, left_reward, right_reward):
         self._length = length

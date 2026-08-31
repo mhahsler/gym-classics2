@@ -1,19 +1,32 @@
-"""This file implements different schedules to reduce the learning rate alpha or
-the exploration rate epsilon over time (used in on-policy methods for GLIE). 
-These are commonly used in reinforcement learning algorithms 
-to improve convergence and performance.
+"""Scalar schedules for reinforcement-learning hyperparameters.
+
+A schedule is a callable that maps a nonnegative episode or step index ``t`` to
+a floating-point value. The included algorithms use schedules to vary parameters
+such as the step size (alpha) and exploration rate (epsilon) during training.
 """
 
 import numpy as np
 
 class Schedule:
-    """Base class for schedules."""
+    """Interface for a scalar value indexed by episode or time step."""
+
     def __call__(self, t):
-        """Returns the scheduled value at time step (or episode) t."""
+        """Evaluate the schedule.
+
+        Args:
+            t: Nonnegative episode or step index.
+
+        Returns:
+            Scheduled scalar value at ``t``.
+        """
         raise NotImplementedError
 
 class ConstantSchedule(Schedule):
-    """A schedule that always returns a constant value."""
+    """Return the same value for every index.
+
+    Args:
+        value: Constant value returned by the schedule.
+    """
     def __init__(self, value):
         self.value = float(value)
 
@@ -21,7 +34,16 @@ class ConstantSchedule(Schedule):
         return self.value
 
 class StepSchedule(Schedule):
-    """A schedule that always returns a constant value."""
+    """Switch once from a high value to a low value.
+
+    The schedule returns ``high_value`` while ``t < steps`` and ``low_value``
+    from ``t == steps`` onward.
+
+    Args:
+        high_value: Value before the switch.
+        low_value: Value at and after the switch.
+        steps: Index at which to switch to ``low_value``.
+    """
     def __init__(self, high_value, low_value, steps):
         self.high_value = float(high_value)
         self.low_value = float(low_value)
@@ -33,7 +55,16 @@ class StepSchedule(Schedule):
         return self.low_value
 
 class LinearDecaySchedule(Schedule):
-    """A schedule that decays linearly from initial_value to min_value over decay_steps."""
+    """Interpolate linearly from an initial value to a final value.
+
+    The schedule returns ``initial_value`` at ``t = 0``, changes linearly through
+    ``decay_steps``, and returns ``min_value`` thereafter.
+
+    Args:
+        initial_value: Value at index zero.
+        min_value: Final value and lower endpoint of a decreasing schedule.
+        decay_steps: Number of indices over which to interpolate.
+    """
     def __init__(self, initial_value, min_value, decay_steps):
         self.initial_value = float(initial_value)
         self.min_value = float(min_value)
@@ -44,8 +75,14 @@ class LinearDecaySchedule(Schedule):
         return self.initial_value + fraction * (self.min_value - self.initial_value)
 
 class ExponentialDecaySchedule(Schedule):
-    """A schedule that decays exponentially with a given decay_rate.
-    Value at time t is max(min_value, initial_value * (decay_rate ** t)).
+    """Decay geometrically to a minimum value.
+
+    At index ``t``, the value is ``max(min_value, initial_value * decay_rate**t)``.
+
+    Args:
+        initial_value: Unclipped value at index zero.
+        min_value: Lower bound for the returned value.
+        decay_rate: Multiplicative factor applied at each successive index.
     """
     def __init__(self, initial_value, min_value, decay_rate):
         self.initial_value = float(initial_value)
@@ -56,8 +93,14 @@ class ExponentialDecaySchedule(Schedule):
         return max(self.min_value, self.initial_value * (self.decay_rate ** t))
 
 class InverseDecaySchedule(Schedule):
-    """A schedule that decays inversely proportional to t.
-    Value at time t is max(min_value, initial_value / t) for t > 0.
+    """Decay in inverse proportion to the index.
+
+    The schedule returns ``initial_value`` at ``t = 0``. For ``t > 0``, it
+    returns ``max(min_value, initial_value / t)``.
+
+    Args:
+        initial_value: Value at index zero and numerator of the inverse schedule.
+        min_value: Lower bound for the returned value.
     """
     def __init__(self, initial_value, min_value=0.0):
         self.initial_value = float(initial_value)
@@ -69,26 +112,22 @@ class InverseDecaySchedule(Schedule):
         return max(self.min_value, self.initial_value / t)
 
 def plot_schedule(schedule, steps=1000):
-    """Plots the values of a schedule over a given number of steps.
+    """Plot scheduled values for indices ``0`` through ``steps - 1``.
     
     Example:
-        from gym_classics2.algorithms.schedules import ConstantSchedule, LinearDecaySchedule, ExponentialDecaySchedule, InverseDecaySchedule, plot_schedule
-        
-        # Create different schedules
-        constant_sched = ConstantSchedule(0.1)
-        linear_sched = LinearDecaySchedule(initial_value=1.0, min_value=0.1, decay_steps=1000)
-        exponential_sched = ExponentialDecaySchedule(initial_value=1.0, min_value=0.1, decay_rate=0.99)
-        inverse_sched = InverseDecaySchedule(initial_value=10.0, min_value=0.1)
-        
-        # Plot them
-        plot_schedule(constant_sched, steps=500)
-        plot_schedule(linear_sched, steps=1000)
-        plot_schedule(exponential_sched, steps=1000)
-        plot_schedule(inverse_sched, steps=1000)
+        ```python
+        from gym_classics2.algorithms.schedules import (
+            LinearDecaySchedule,
+            plot_schedule,
+        )
+
+        epsilon = LinearDecaySchedule(1.0, min_value=0.1, decay_steps=1_000)
+        plot_schedule(epsilon, steps=1_000)
+        ```
 
     Args:
-        schedule: A Schedule instance (or any callable taking an integer step).
-        steps: The number of steps to plot.
+        schedule: Callable that accepts an integer index and returns a scalar.
+        steps: Number of scheduled values to plot.
     """
     import matplotlib.pyplot as plt
     
