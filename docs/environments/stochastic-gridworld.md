@@ -12,18 +12,6 @@ Thus, requesting `up` can move the agent up, left, or right. A movement into a
 wall, a blocked cell, or the edge of the grid leaves the agent in its current
 cell.
 
-## The transition and reward model
-
-A finite Markov decision process is commonly specified by
-
-\[
-p(s', r \mid s, a),
-\]
-
-the probability of reaching next state \(s'\) and receiving reward \(r\), given
-current state \(s\) and requested action \(a\). This is typically implemented
-as a function \(p(s,a,r,s') \doteq p(s', r \mid s, a)\).
-
 ## Define the layout
 
 A Gridworld layout is a rectangular string in which `S` marks a start, `G`
@@ -40,6 +28,27 @@ Both terminal cells use `G` because the layout describes termination. The
 reward function distinguishes the positive goal with a reward of +1 (top-right
 corner) from the negative trap with a reward of -1 directly below it.
 
+
+## The stochastic transition and reward model
+
+A finite Markov decision process is commonly specified by
+
+\[
+p(s', r \mid s, a),
+\]
+
+the probability of reaching next state \(s'\) and receiving reward \(r\), given
+current state \(s\) and requested action \(a\). This is typically implemented
+as a function \(p(s,a,r,s') \doteq p(s', r \mid s, a)\).
+
+For simulating episodes, the effect of the stochastic component in the environment is represented by a random event 
+ \(\mathbf{z}\) that is sampled at the beginning of each step. The model function is then 
+ extended to \(p(s,a,r,s',\mathbf{z})\).
+
+ For the stochastic gridworld in this example, the 80–10–10 rule is used to sample \(\mathbf{z}\) and this samples
+ \(\mathbf{z}\) overwrites the agent's action with the action that is actually executed. 
+
+
 ## Implement the environment from `Gridworld`
 
 The `gym_classics2` base class provides two public interfaces to the dynamics:
@@ -51,11 +60,12 @@ The two interfaces use the following implementation methods:
 
 | Method | Model component | Role |
 | --- | --- | --- |
-| `_sample_random_elements` | Samples \(p(\tilde a\mid a)\) | Chooses one executed action when `step()` is called |
-| `_next_state` | \(s'\) and \(p(\tilde a\mid a)\) | Returns the resulting state and probability of that random event |
-| `_reward` | \(R(s,a,s')\) | Assigns the reward associated with the transition |
+| `_sample_random_elements` | Stochasticity in the model | Samples a random event \(\mathbf{z}\) for the step when `step()` is called. For this example,  \(\mathbf{z}\) is the actual action that is executed chosen by the 80-10-10 rule. |
+| `_next_state` | \(s'\) and \(p(s,a,s',\mathbf{z})\) | Returns the resulting state and probability of the transition given the chosen random event. Here the agent's action is replaced with the sampled action. |
+| `_reward` | \(r(s,a,s',\mathbf{z})\) | Assigns the reward associated with the transition considering the random event. |
 | `_done` | Terminal indicator | Identifies transitions after which no future reward is available |
-| `_generate_transitions` | Full \(p(s',r\mid s,a)\) | Enumerates all random events for planning algorithms |
+| `_generate_transitions` | Full \(p(s',r\mid s,a)\) | Enumerates the transition probabilities and rewards for all 
+possible random events for planning algorithms. |
 
 
 ### Step interface
@@ -66,6 +76,8 @@ The standard Gymnasium `step()` interface calls the implementation method in the
 2. `_next_state`
 3. `_reward`
 4. `_done`
+
+The collected results are returned. 
 
 ### Model interface
 
@@ -206,6 +218,6 @@ The output is:
 (1, 0) -0.04 False 0.1
 ```
 
-For this state and action, these rows are precisely the nonzero entries of
-\(p(s',r\mid s=(0,0),a=\text{up})\). The first outcome stays at `(0, 0)`
+For this state and action, these rows are precisely the entries of
+\(p(s',r\mid s=(0,0),a=\text{up})\) with a nonzero probability. The first outcome stays at `(0, 0)`
 because the unintended `left` action hits the boundary.

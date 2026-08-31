@@ -254,11 +254,14 @@ class Gridworld(BaseEnv):
         return action_labels[action]
 
     def to_matrix(self, value = None):
-        """Converts a vector with values for states in a gridworld to a matrix for display. Values can be a value function, policy, etc.
-        
-        param value: The value function as a vector.
+        """Arrange state-indexed values as a grid-shaped matrix.
 
-        return: The value function as a matrix.
+        Args:
+            value: One value per reachable state. If omitted, use state IDs.
+
+        Returns:
+            Matrix with grid rows ordered for display. Unreachable cells contain
+            ``-1``, an empty string, ``NaN``, or zero according to the input type.
         """
         
         if value is None:
@@ -306,16 +309,24 @@ class Gridworld(BaseEnv):
             print()
     
     def image(self, V=None, policy=None, episode = None, labels=None, title=None, cmap = 'auto', origin='lower', clim = None):
-        """
-        Display the a gridworld as an image.
-        
-        :param V: The value (e.g., a value function) to display. If None, display state indices.
-        :param labels: The labels to show on the grid cells in the same order as the value function. If True, show rounded values from V.
-        :param policy: The policy to display. If not None, show the policy.
-        :param episode: Show an episode
-        :param title: Title of the plot.
-        :param cmap: Colormap to use for the value function.
-        :param origin: 'lower' means (0,0) is at the bottom-left, 'upper' means (0,0) is at the top-left.
+        """Display the gridworld, values, and optional actions as an image.
+
+        Args:
+            V: One value per state, such as a value function. If omitted, cells
+                display their state IDs and the color bar is hidden.
+            policy: One action ID per state. Actions are drawn as arrows and
+                replace ``labels`` when provided.
+            episode: Sequence of transitions whose first two entries are the state
+                and action IDs. Actions taken in visited states are drawn as arrows
+                and replace ``policy``.
+            labels: One label per state. If ``True``, use values from ``V`` rounded
+                to two decimal places.
+            title: Plot title.
+            cmap: Matplotlib colormap or colormap name. ``"auto"`` selects a
+                sequential or diverging colormap from the displayed values.
+            origin: ``"lower"`` places coordinate ``(0, 0)`` at the lower-left;
+                ``"upper"`` places it at the upper-left.
+            clim: Optional ``(minimum, maximum)`` limits for the color scale.
         """
         
         colorbar = True

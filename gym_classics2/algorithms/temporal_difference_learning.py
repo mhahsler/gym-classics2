@@ -19,11 +19,9 @@ def Sarsa_0(env, discount, alpha, epsilon, Q=None, n=100, verbose=False,
     Args:
         env: Gymnasium environment with discrete observation and action spaces.
         discount: Reward discount factor in ``[0, 1]``.
-        alpha: Scalar step size or a
-            :class:`~gym_classics2.algorithms.schedules.Schedule` evaluated once
+        alpha: Scalar step size or ``Schedule`` evaluated once per episode.
+        epsilon: Scalar exploration probability or ``Schedule`` evaluated once
             per episode.
-        epsilon: Scalar exploration probability or a schedule evaluated once per
-            episode.
         Q: Optional initial action-value array shaped
             ``(env.observation_space.n, env.action_space.n)``. The array is updated
             in place.
@@ -111,11 +109,9 @@ def Q_learning(env, discount, alpha, epsilon, Q=None, n=100, verbose=False,
     Args:
         env: Gymnasium environment with discrete observation and action spaces.
         discount: Reward discount factor in ``[0, 1]``.
-        alpha: Scalar step size or a
-            :class:`~gym_classics2.algorithms.schedules.Schedule` evaluated once
+        alpha: Scalar step size or ``Schedule`` evaluated once per episode.
+        epsilon: Scalar exploration probability or ``Schedule`` evaluated once
             per episode.
-        epsilon: Scalar exploration probability or a schedule evaluated once per
-            episode.
         Q: Optional initial action-value array shaped
             ``(env.observation_space.n, env.action_space.n)``. The array is updated
             in place.

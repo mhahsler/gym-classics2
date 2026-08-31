@@ -31,16 +31,17 @@ def pi(s,theta,env):
     return exp_hs / np.sum(exp_hs)
 
 def sample_episode_approx_policy(env, pi, theta, max_episode_length=1000, rng=None):
-    """
-    Sample an episode using the policy defined by pi and theta.
-    
-    :param env: the environment to sample from
-    :param pi: the policy function that takes state, theta, and env as input and
-        returns a probability distribution over actions
-    :param theta: the policy parameters
-    :param max_episode_length: maximum number of steps to sample in the episode
-    :param rng: NumPy generator or integer seed used to sample actions
-    :return: a list of (state, action, reward, next_state) tuples representing the sampled episode
+    """Sample an episode from a parameterized policy.
+
+    Args:
+        env: Episodic Gymnasium environment.
+        pi: Callable returning action probabilities for ``(state, theta, env)``.
+        theta: Policy parameter vector.
+        max_episode_length: Maximum number of transitions to sample.
+        rng: NumPy generator or integer seed used to sample actions.
+
+    Returns:
+        List of ``(state, action, reward, next_state)`` transitions.
     """
 
     rng = get_rng(rng)
@@ -59,16 +60,17 @@ def sample_episode_approx_policy(env, pi, theta, max_episode_length=1000, rng=No
     return episode_data
 
 def choose_action_w(env, pi, theta, state, rng=None):
-    """
-    Choose an action based on the policy defined by pi and theta for the given state.
-    
-    :param env: the environment
-    :param pi: the policy function that takes state, theta, and env as input and
-        returns a probability distribution over actions 
-    :param theta: the policy parameters
-    :param state: the current state
-    :param rng: NumPy generator or integer seed used to sample the action
-    :return: the chosen action
+    """Sample an action from a parameterized policy.
+
+    Args:
+        env: Environment providing the discrete action space.
+        pi: Callable returning action probabilities for ``(state, theta, env)``.
+        theta: Policy parameter vector.
+        state: Current state.
+        rng: NumPy generator or integer seed used to sample the action.
+
+    Returns:
+        Selected integer action ID.
     """
     rng = get_rng(rng)
     return rng.choice(env.action_space.n, p=pi(state, theta, env))
@@ -84,27 +86,24 @@ def REINFORCE(
     history=False,
     rng=None,
     ):
-    """REINFORCE: Monte Carlo policy gradient method with linear function approximation.
-    Parameters
-    ----------
-    env : GymClassicsBaseEnv
-        Episodic environment used to generate experience.
-    n : int
-        Number of episodes.
-    alpha : float
-        Step size.
-    gamma : float
-        Discount factor.
-    theta : array-like or None
-        Initial policy parameters. If None, initializes to zeros.
-    max_episode_length : int
-        Maximum number of steps per episode.
-    verbose : bool
-        Whether to print step-by-step diagnostics.
-    history : bool
-        Whether to return learning history (returns, episode lengths, parameter values).    
-    rng : numpy.random.Generator or int or None
-        Random generator or seed used to sample actions.
+    """Run REINFORCE with a linear softmax policy.
+
+    Args:
+        env: Episodic environment used to generate experience.
+        n: Number of training episodes.
+        alpha: Policy step size or schedule.
+        gamma: Discount factor in ``[0, 1]``.
+        theta: Initial policy parameter vector. If omitted, initialize it to
+            zeros.
+        max_episode_length: Maximum number of steps per episode.
+        verbose: Whether to print step-by-step diagnostics.
+        history: Whether to return parameters, returns, and episode lengths
+            collected during training.
+        rng: NumPy generator or integer seed used to sample actions.
+
+    Returns:
+        Learned policy parameters. If ``history`` is true, returns
+        ``(theta, history)``.
     """
     
     assert gamma >= 0 and gamma <= 1, "gamma must be in [0  ,1]"
@@ -177,41 +176,24 @@ def AC(
     history=False,
     rng=None,
     ):
-    """Actor-Critic: Policy gradient method with linear function approximation and TD learning for the value function.
-    
-    Parameters
-    ----------
-    env : Episodic environment used to generate experience.
-    n : int
-        Number of episodes.
-    alpha_policy : float or Schedule
-        Step size for policy updates. If a float is provided, it will be converted to a ConstantSchedule. If a Schedule is provided, it will be used directly.
-    alpha_value : float or Schedule
-        Step size for value function updates. If a float is provided, it will be converted to a ConstantSchedule. If a Schedule is provided, it will be used directly. 
-    gamma : float
-        Discount factor.
-    max_episode_length : int
-        Maximum number of steps per episode.
-    verbose : bool
-        Whether to print step-by-step diagnostics.
-    history : bool
-        Whether to return learning history (returns, episode lengths, parameter values).
-    rng : numpy.random.Generator or int or None
-        Random generator or seed used to sample actions.
-        
-        Returns
-        -------
-        theta : array-like
-            Final policy parameters after training.
-        w : array-like
-            Final value function parameters after training.
-        history : dict (optional)
-            If history=True, a dictionary containing the learning history with keys: 
-                'thetas': list of policy parameter vectors at each episode,
-                'ws': list of value function parameter vectors at each episode,
-                'returns': list of returns observed at the end of each episode,
-                'ep_lens': list of episode lengths (number of steps) for each episode.
-        """
+    """Run one-step actor-critic with linear policy and value approximators.
+
+    Args:
+        env: Episodic environment used to generate experience.
+        n: Number of training episodes.
+        alpha_policy: Step size or schedule for policy updates.
+        alpha_value: Step size or schedule for value-function updates.
+        gamma: Discount factor in ``[0, 1]``.
+        max_episode_length: Maximum number of steps per episode.
+        verbose: Whether to print step-by-step diagnostics.
+        history: Whether to return policy parameters, returns, and episode lengths
+            collected during training.
+        rng: NumPy generator or integer seed used to sample actions.
+
+    Returns:
+        Tuple ``(theta, w)`` containing the learned policy and value parameters.
+        If ``history`` is true, returns ``(theta, w, history)``.
+    """
     
     assert gamma >= 0 and gamma <= 1, "gamma must be in [0  ,1]"
     assert n > 0, "number of episodes must be positive"

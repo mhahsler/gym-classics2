@@ -4,7 +4,7 @@ import numpy as np
 def get_rng(rng=None):
     """Return *rng* as a NumPy random generator.
 
-    ``rng`` may be a :class:`numpy.random.Generator`, an integer seed, or
+    ``rng`` may be a NumPy ``Generator``, an integer seed, or
     ``None``. Passing a generator lets callers share one reproducible random
     stream across an algorithm and all of its helpers.
     """

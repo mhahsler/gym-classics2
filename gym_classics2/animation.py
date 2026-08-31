@@ -11,15 +11,21 @@ rc('animation', html='jshtml')
 ### Visualization function
 
 def gridworld_animate(env, Vs, policies = None, interval = 1000, repeat=False, cmap = "coolwarm", clim = None, origin='lower'):
-    """
-    Create an animation showing the evolution of value functions in a gridworld.
+    """Animate a sequence of gridworld value functions and policies.
 
-    :param env: The gridworld environment.
-    :param Vs: A list of value functions to animate.
-    :param repeat: Whether the animation should repeat.
-    :param cmap: Colormap to use for the value function.
-    :param origin: 'lower' means (0,0) is at the bottom-left, 'upper' means (0,0) is at the top-left.
-    :return: An animation object.
+    Args:
+        env: Gridworld used to map state vectors to cells.
+        Vs: Sequence of value functions, one per animation frame.
+        policies: Optional sequence of policies aligned with ``Vs``.
+        interval: Delay between frames in milliseconds.
+        repeat: Whether to restart after the final frame.
+        cmap: Matplotlib colormap name.
+        clim: Optional ``(minimum, maximum)`` limits for the color scale.
+        origin: ``"lower"`` places coordinate ``(0, 0)`` at the lower-left;
+            ``"upper"`` places it at the upper-left.
+
+    Returns:
+        Matplotlib ``FuncAnimation`` object.
     """
      
     if clim is None:

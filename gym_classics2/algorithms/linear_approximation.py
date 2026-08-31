@@ -16,20 +16,26 @@ from gym_classics2.algorithms.schedules import Schedule, ConstantSchedule
 from gym_classics2.envs.abstract.base_env import BaseEnv as GymClassicsBaseEnv
 
 def state_features(s,env):
-    """
-    Converts a state to a state feature vector. It needs to be overwritten by the user to implement different feature representations. 
-    This could be linear features, tile coding, radial basis functions, Fourier basis functions, or even a neural network.
-    
-    :param s: state
-    :param env: environment instance   
-    
-    :return a state feature vector
+    """Convert a state into a feature vector.
+
+    Override this function to provide features such as tile coding, radial basis
+    functions, or a Fourier basis for the target environment.
+
+    Args:
+        s: Environment state.
+        env: Environment containing the state.
+
+    Returns:
+        Feature vector representing ``s``.
+
+    Raises:
+        NotImplementedError: Always, until replaced for the target environment.
     """
     raise NotImplementedError("state_features function needs to be implemented by the user. By default, it just concatenates a constant feature (for the intercept) with the state itself. This is equivalent to linear function approximation with a tabular representation.")
    
 
 def active_weights(a, sf_len):
-    """helper for q_hat()"""
+    """Return indices of the intercept and action-specific active weights."""
     return [0] + list(range(a*sf_len+1, a*sf_len+sf_len+1))
 
 def state_action_features(s,a,env):
@@ -40,39 +46,45 @@ def state_action_features(s,a,env):
     return x
 
 def v_hat(s, w, env):
-    """
-    Estimate Value function
-    
-    :param s: state id
-    :param w: weight vector
-    :param env: environment instance
-    
-    :return the state value estimate
+    """Estimate a state's value with a linear approximator.
+
+    Args:
+        s: State to evaluate.
+        w: Weight vector.
+        env: Environment containing the state.
+
+    Returns:
+        Scalar estimate of the value of ``s``.
     """
     return np.dot(w, state_features(s, env))
 
 def q_hat(s, a, w, env):
-    """
-    Estimate the action value function.
-    
-    :param s: state id
-    :param a: action
-    :param w: weight vector
-    :param env: environment instance
-    :return the state-action value estimate
+    """Estimate an action value with a linear approximator.
+
+    Args:
+        s: State to evaluate.
+        a: Action to evaluate.
+        w: Weight vector.
+        env: Environment containing the state and action.
+
+    Returns:
+        Scalar estimate of the value of taking ``a`` in ``s``.
     """    
     x = state_action_features(s, a, env)
     return np.dot(w, x)
 
 def epsilon_greedy_action_w(env, w, state, epsilon=0, rng=None):
-    """
-    Get an epsilon-greedy action for a given policy.
-    
-    :param w: weight vector for the action-value function approximator
-    :param env: environment instance
-    :param state: the current state
-    :param epsilon: the probability of taking a random action
-    :param rng: NumPy generator or integer seed
+    """Select an epsilon-greedy action from approximate action values.
+
+    Args:
+        env: Environment providing the discrete action space.
+        w: Weight vector for the action-value approximator.
+        state: Current state.
+        epsilon: Probability of selecting a uniformly random action.
+        rng: NumPy generator or integer seed.
+
+    Returns:
+        Selected integer action ID.
     """
     
     rng = get_rng(rng)
@@ -87,12 +99,16 @@ def epsilon_greedy_action_w(env, w, state, epsilon=0, rng=None):
 
 
 def MSVE(V, V_true, weight=None):
-    """
-    Calculate the (weighted) mean squared value error.
-    
-    :param V: value function to evaluate
-    :param V_true: the value function to compare to
-    :param weight: weight for each state. Typically the stationary state visit distribution.
+    """Calculate the weighted mean squared value error.
+
+    Args:
+        V: Estimated value for each state.
+        V_true: Reference value for each state.
+        weight: Weight for each state, typically its stationary visitation
+            probability. If omitted, use unit weights.
+
+    Returns:
+        Weighted sum of squared value errors.
     """
     if weight is None:
         weight = np.ones(len(V))
@@ -101,33 +117,23 @@ def MSVE(V, V_true, weight=None):
 
 
 def semi_gradient_TD0_estimation(env, policy, n, alpha, gamma, max_episode_length=1000, verbose =False):
-    """
-    Estimate the state-value function using the semi-gradient TD(0) algorithm.
+    """Estimate state values with semi-gradient TD(0).
 
     This function runs TD(0) learning with function approximation over multiple
     episodes generated from a given policy and environment. Updates are performed
     using the semi-gradient of the value function approximation.
 
-    Parameters
-    ----------
-    env : Environment following the Gym interface from which episodes are sampled.
-    policy : a deterministic policy as a vector.
-    n : int
-        Number of episodes to run for value estimation. Must be positive.
-    alpha : float
-        Step-size (learning rate) for TD updates. Must be in the interval (0, 1].
-    gamma : float
-        Discount factor for future rewards. Must be in the interval [0, 1].
-    max_episode_length : int, optional
-        Maximum number of time steps per episode (default is 1000).
-    verbose : bool, optional
-        If True, prints progress or diagnostic information during training
-        (default is True).
+    Args:
+        env: Episodic Gymnasium environment used to generate experience.
+        policy: Deterministic policy indexed by state.
+        n: Number of training episodes.
+        alpha: Step size or schedule.
+        gamma: Discount factor in ``[0, 1]``.
+        max_episode_length: Maximum number of steps per episode.
+        verbose: Whether to print step-by-step diagnostics.
 
-    Returns
-    -------
-    w
-        Returns the learned weight vector for the approximate value function.
+    Returns:
+        Learned weight vector for the approximate value function.
     """
     assert gamma >= 0 and gamma <= 1, "Gamma must be in [0,1]"
     assert n > 0, "Number of episodes must be positive"
@@ -171,8 +177,7 @@ def semi_gradient_TD0_estimation(env, policy, n, alpha, gamma, max_episode_lengt
 def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w=None,
                           max_episode_length=1000, verbose=False,
                           history=False, rng=None):
-    """
-    Semi-gradient Sarsa(0): on-policy control with function approximation.
+    """Run semi-gradient Sarsa(0) with function approximation.
 
     Implements the **semi-gradient Sarsa(0)** algorithm for estimating the optimal
     action-value function q_*(s, a) using a differentiable function approximator
@@ -181,31 +186,21 @@ def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w=None,
 
     Episodes are truncated after `max_episode_length` time steps.
 
-    Parameters
-    ----------
-    env : Episodic environment used to generate experience.
-    n : int
-        Number of episodes over which to perform control learning.
-    epsilon : float
-        Exploration parameter for the epsilon-greedy behavior policy (0 <= epsilon <= 1).
-    alpha : float
-        Step-size parameter for the weight update (0 < alpha <= 1).
-    gamma : float
-        Discount factor (0 <= gamma <= 1).
-    w : array-like or None, optional
-        Initial weight vector for the action-value function approximator.
-        If None, weights are initialized internally.
-    max_episode_length : int, optional
-        Maximum number of time steps per episode before truncation (default 1000).
-    verbose : bool, optional
-        If True, prints progress diagnostics during learning (default True).
-    rng : numpy.random.Generator or int or None, optional
-        Random generator or seed for exploration and tie-breaking.
+    Args:
+        env: Episodic environment used to generate experience.
+        n: Number of training episodes.
+        epsilon: Exploration rate or schedule for the epsilon-greedy policy.
+        alpha: Step size or schedule.
+        gamma: Discount factor in ``[0, 1]``.
+        w: Initial action-value weight vector. If omitted, initialize it to zeros.
+        max_episode_length: Maximum number of steps per episode.
+        verbose: Whether to print step-by-step diagnostics.
+        history: Whether to return weights, returns, and episode lengths collected
+            during training.
+        rng: NumPy generator or integer seed for exploration and tie-breaking.
 
-    Returns
-    -------
-    w
-        Returns the learned weight vector for the approximate value function.
+    Returns:
+        Learned weight vector. If ``history`` is true, returns ``(w, history)``.
     """
     
     assert gamma >= 0 and gamma <= 1, "Gamma must be in [0,1]"
@@ -281,25 +276,38 @@ def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w=None,
 
 # product from itertools is the cartesian product
 def create_fourier_basis_coefs(dim, order): 
-    """ Create Fourier basis coefficients for given dimension and order. 
-        param dim: dimension of the state features
-        param order: order of the Fourier basis
-    """  
+    """Create Fourier basis coefficient vectors.
+
+    Args:
+        dim: Number of state-feature dimensions.
+        order: Maximum coefficient in each dimension.
+
+    Returns:
+        Array containing the Cartesian product of coefficients from zero through
+        ``order`` in each dimension.
+    """
     return np.array(list(product(range(order+1), repeat=dim)))
     
 def transformation_fourier_basis(min, max, order):
-    """ Create a Fourier basis transformation function for given min/max ranges and order.
-    
-        To use this transformation with semi_gradient_Sarsa you need to overwrite the state_features 
-        function like this:
-        
-        def state_features(s, env): return trans_fb(env.decode(s))
-        gym_classics2.algorithms.linear_approximation.state_features = state_features
-        
-        param min: minimum values for each dimension
-        param max: maximum values for each dimension
-        param order: order of the Fourier basis
-    """  
+    """Create a Fourier basis feature transformation.
+
+    Args:
+        min: Minimum state value in each dimension.
+        max: Maximum state value in each dimension.
+        order: Maximum Fourier coefficient in each dimension.
+
+    Returns:
+        Callable that normalizes a state to the unit hypercube and returns its
+        Fourier basis features.
+
+    Example:
+        ```python
+        transform = transformation_fourier_basis([0, 0], [1, 1], order=3)
+
+        def state_features(state, env):
+            return transform(state)
+        ```
+    """
     
     min = np.array(min)
     max = np.array(max)

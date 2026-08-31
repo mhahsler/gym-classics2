@@ -60,13 +60,16 @@ def _backup(env, discount, V, s, a):
     return np.sum(probs * (rewards + discount * bootstraps))
 
 def greedy_policy(env, V, discount=1, rng=None):
-    """
-    Calculate the greedy policy for a given value function.
-    
-    :param env: the environment
-    :param V: the value function as a 1-D numpy array
-    :param discount: discount factor
-    :param rng: NumPy generator or integer seed used for random tie-breaking
+    """Calculate a greedy policy from a state-value function.
+
+    Args:
+        env: Environment with a discrete state space and model access.
+        V: One-dimensional state-value array.
+        discount: Discount factor in ``[0, 1]``.
+        rng: NumPy generator or integer seed for random tie-breaking.
+
+    Returns:
+        Integer action ID selected for each state.
     """
     assert isinstance(env, GymClassicsBaseEnv), "greedy_policy requires a gym-classics environment with discrete state space."
     assert isinstance(env.action_space, gym.spaces.Discrete)
@@ -85,13 +88,16 @@ def greedy_policy(env, V, discount=1, rng=None):
     return policy
 
 def greedy_policy_Q(env, Q, discount=1, rng=None):
-    """
-    Calculate the greedy policy for a given action-value function.
-    
-    :param env: environment with discrete observation and action spaces
-    :param Q: action-value function as a 2-D NumPy array indexed by state and action
-    :param rng: NumPy generator or integer seed used for random tie-breaking
-    :param discount: unused; retained for API compatibility with ``greedy_policy``
+    """Calculate a greedy policy from an action-value function.
+
+    Args:
+        env: Environment with discrete observation and action spaces.
+        Q: Two-dimensional action-value array indexed by state and action.
+        discount: Unused; retained for API compatibility with ``greedy_policy``.
+        rng: NumPy generator or integer seed for random tie-breaking.
+
+    Returns:
+        Integer action ID selected for each state.
     """
     
     assert isinstance(env.action_space, gym.spaces.Discrete)
@@ -101,13 +107,17 @@ def greedy_policy_Q(env, Q, discount=1, rng=None):
     return random_argmax(Q, axis=1, rng=rng)
 
 def epsilon_greedy_action(policy, state=None, epsilon=0, rng=None):
-    """
-    Get an epsilon-greedy action for a given tabular policy.
-    
-    :param policy: the policy as a 1-D numpy array
-    :param epsilon: the probability of taking a random action
-    :param state: the current state
-    :param rng: NumPy generator or integer seed
+    """Select an epsilon-greedy action from tabular action values.
+
+    Args:
+        policy: Action values for all actions, optionally indexed first by state.
+        state: Current state index. If omitted, ``policy`` is treated as the
+            action-value vector for the current state.
+        epsilon: Probability of selecting a uniformly random action.
+        rng: NumPy generator or integer seed.
+
+    Returns:
+        Selected integer action ID.
     """
     
     rng = get_rng(rng)

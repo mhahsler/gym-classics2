@@ -11,18 +11,25 @@ from gym_classics2.envs.abstract.base_env import BaseEnv as GymClassicsBaseEnv
 from gym_classics2.utils import get_rng
 
 def state_features(s, env):
-    """
-    Convert the state id into state features. This function needs to be overwritten for the environment
-    
-    :param s: state id
-    :param env: environment instance
+    """Convert a state ID into a feature vector.
 
-    :return a state feature vector
+    Override this function for the target environment before running an
+    approximation algorithm.
+
+    Args:
+        s: State ID.
+        env: Environment containing the state.
+
+    Returns:
+        Feature vector representing ``s``.
+
+    Raises:
+        NotImplementedError: Always, until replaced for the target environment.
     """
     raise NotImplementedError("state_features function must be implemented and overwrite gym_classics2.algorithms.linear_approximation.state_features.") 
 
 def active_weights(a, sf_len):
-    """helper for q_hat()"""
+    """Return indices of the intercept and action-specific active weights."""
     return [0] + list(range(a*sf_len+1, a*sf_len+sf_len+1))
 
 def state_action_features(s,a,env):
@@ -49,37 +56,24 @@ def semi_gradient_Sarsa_lambda(
     history=False,
     rng=None,
 ):
-    """
-    Semi-gradient SARSA(lambda): on-policy control with linear function approximation
-    and eligibility traces.
+    """Run semi-gradient Sarsa(lambda) with linear function approximation.
 
-    Parameters
-    ----------
-    env : GymClassicsBaseEnv
-        Episodic environment used to generate experience.
-    n : int
-        Number of episodes.
-    epsilon : float
-        Exploration rate for epsilon-greedy policy.
-    alpha : float
-        Step size.
-    gamma : float
-        Discount factor.
-    lam : float
-        Trace-decay parameter lambda in [0, 1].
-    w : array-like or None
-        Initial weights. If None, initializes to zeros.
-    max_episode_length : int
-        Maximum number of steps per episode.
-    verbose : bool
-        Whether to print step-by-step diagnostics.
-    rng : numpy.random.Generator or int or None
-        Random generator or seed for exploration and tie-breaking.
+    Args:
+        env: Episodic environment used to generate experience.
+        n: Number of episodes.
+        epsilon: Exploration rate or schedule for the epsilon-greedy policy.
+        alpha: Step size or schedule.
+        gamma: Discount factor in ``[0, 1]``.
+        lam: Trace-decay parameter lambda in ``[0, 1]``.
+        w: Initial weight vector. If omitted, initialize it to zeros.
+        max_episode_length: Maximum number of steps per episode.
+        verbose: Whether to print step-by-step diagnostics.
+        history: Whether to return weights, returns, and episode lengths collected
+            during training.
+        rng: NumPy generator or integer seed for exploration and tie-breaking.
 
-    Returns
-    -------
-    w : np.ndarray
-        Learned weight vector.
+    Returns:
+        Learned weight vector. If ``history`` is true, returns ``(w, history)``.
     """
 
     assert gamma >= 0 and gamma <= 1, "gamma must be in [0,1]"
