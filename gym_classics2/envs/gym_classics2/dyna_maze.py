@@ -5,7 +5,9 @@ class DynaMaze(Gridworld):
     """A 9x6 deterministic gridworld with barriers to make navigation more challenging.
     The agent starts in cell (0, 3); the goal is the top-right cell.
 
-    **reference:** cite{3} (page 164, example 8.1).
+    **Reference:** Sutton and Barto,
+    [*Reinforcement Learning: An Introduction* (2nd ed., 2018)](https://incompleteideas.net/book/the-book-2nd.html),
+    p. 164, Example 8.1.
 
     **state**: Grid location.
 

@@ -8,7 +8,9 @@ class ClassicGridworld(Gridworld):
     clockwise or counter-clockwise (the "80-10-10 rule"). Cell (1, 1) is blocked and
     cannot be occupied by the agent.
 
-    **reference:** cite{1} (page 646).
+    **Reference:** Russell and Norvig,
+    [*Artificial Intelligence: A Modern Approach* (3rd ed., 2010)](https://aima.cs.berkeley.edu/3rd-ed/),
+    p. 646.
 
     **state**: Grid location.
 

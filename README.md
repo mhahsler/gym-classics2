@@ -28,6 +28,13 @@ Python 3.9 or newer is required. To install the current development version:
 python -m pip install "gym-classics2 @ git+https://github.com/mhahsler/gym-classics2.git"
 ```
 
+Pygame rendering is optional. Install the `render` extra to use `human` or
+`rgb_array` rendering modes:
+
+```bash
+python -m pip install "gym-classics2[render] @ git+https://github.com/mhahsler/gym-classics2.git"
+```
+
 ## Quick start
 
 Register the environments, create one with Gymnasium, and use the standard

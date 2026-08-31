@@ -7,7 +7,9 @@ class WindyGridworld(Gridworld):
     an action from a cell with wind, the resulting position is given by the vector sum
     of the action's effect and the wind.
 
-    **reference:** cite{3} (page 130, example 6.5).
+    **Reference:** Sutton and Barto,
+    [*Reinforcement Learning: An Introduction* (2nd ed., 2018)](https://incompleteideas.net/book/the-book-2nd.html),
+    p. 130, Example 6.5.
 
     **state:** Grid location.
 

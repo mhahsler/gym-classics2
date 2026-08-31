@@ -13,7 +13,9 @@ class JacksCarRental(BaseEnv):
     for a proportional fee. The lots can never have more than 20 cars each, and a lot
     earns money for a request only if it has a car available.
 
-    **reference:** cite{3} (page 81, example 4.2).
+    **Reference:** Sutton and Barto,
+    [*Reinforcement Learning: An Introduction* (2nd ed., 2018)](https://incompleteideas.net/book/the-book-2nd.html),
+    p. 81, Example 4.2.
 
     **state:** The number of cars at both lots.
 
@@ -116,7 +118,9 @@ class JacksCarRentalModified(JacksCarRental):
 
     2. Overnight parking incurs -4 reward per lot with more than 10 cars.
 
-    **reference:** cite{3} (page 82, exercise 4.7).
+    **Reference:** Sutton and Barto,
+    [*Reinforcement Learning: An Introduction* (2nd ed., 2018)](https://incompleteideas.net/book/the-book-2nd.html),
+    p. 82, Exercise 4.7.
     """
     def _reward(self, state_after_move, action):
         reward = super()._reward(state_after_move, action)

@@ -1,6 +1,5 @@
 from cProfile import label
 
-import pygame
 from gym_classics2.envs.abstract.base_env import BaseEnv
 from gymnasium.spaces import MultiDiscrete
 
@@ -8,6 +7,17 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
+
+
+def _load_pygame():
+    try:
+        import pygame
+    except ImportError as error:
+        raise ImportError(
+            "Rendering requires pygame; install gym-classics2 with the "
+            "'render' extra."
+        ) from error
+    return pygame
 
 # we need to overwrite:
 # * _next_state
@@ -114,6 +124,7 @@ class Gridworld(BaseEnv):
     def close(self):
         """Release any PyGame display resources."""
         if self.PyGame_window is not None:
+            pygame = _load_pygame()
             pygame.display.quit()
             pygame.quit()
             self.PyGame_window = None
@@ -127,6 +138,7 @@ class Gridworld(BaseEnv):
             return self._render_frame()
 
     def _render_frame(self):
+        pygame = _load_pygame()
         pix_square_size = self.PyGame_window_size / max(self.dims)
         display_size = np.array(pix_square_size) * self.dims
         

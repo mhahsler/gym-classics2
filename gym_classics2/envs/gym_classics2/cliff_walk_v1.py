@@ -9,7 +9,9 @@ class CliffWalk(Gridworld):
     v1 follows the textbook and does not end episodes when the cliff is reached. Also, the goal is 
     a real state.
 
-    **reference:** cite{3} (page 132, example 6.6).
+    **Reference:** Sutton and Barto,
+    [*Reinforcement Learning: An Introduction* (2nd ed., 2018)](https://incompleteideas.net/book/the-book-2nd.html),
+    p. 132, Example 6.6.
 
     **state**: Grid location.
 

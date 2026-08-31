@@ -9,6 +9,13 @@ GitHub:
 python -m pip install "gym-classics2 @ git+https://github.com/mhahsler/gym-classics2.git"
 ```
 
+Pygame rendering is optional. Install the `render` extra to use `human` or
+`rgb_array` rendering modes:
+
+```bash
+python -m pip install "gym-classics2[render] @ git+https://github.com/mhahsler/gym-classics2.git"
+```
+
 ## Run an environment
 
 Registration connects the package's environment IDs to Gymnasium. It only

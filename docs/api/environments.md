@@ -15,6 +15,10 @@
         - id2action
         - model
 
+## Linear walk
+
+::: gym_classics2.envs.abstract.linear_walk.LinearWalk
+
 ## Gridworld
 
 ::: gym_classics2.envs.abstract.gridworld.Gridworld
@@ -27,6 +31,10 @@
         - print
         - image
         - image_list
+
+## Noisy gridworld
+
+::: gym_classics2.envs.abstract.noisy_gridworld.NoisyGridworld
 
 ## Concrete environments
 

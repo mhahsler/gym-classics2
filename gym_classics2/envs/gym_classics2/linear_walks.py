@@ -5,7 +5,9 @@ class Walk5(LinearWalk):
     """A 5-state deterministic linear walk. Ideal for implementing random walk
     experiments.
 
-    **reference:** cite{3} (page 125).
+    **Reference:** Sutton and Barto,
+    [*Reinforcement Learning: An Introduction* (2nd ed., 2018)](https://incompleteideas.net/book/the-book-2nd.html),
+    p. 125, Example 6.2.
 
     **state:** Discrete position {0, ..., 4} on the number line.
 
@@ -25,7 +27,9 @@ class Walk19(LinearWalk):
     """Same as `5Walk` but with 19 states and an additional -1 reward for moving left
     in the extreme left state.
 
-    **reference:** cite{3} (page 145).
+    **Reference:** Sutton and Barto,
+    [*Reinforcement Learning: An Introduction* (2nd ed., 2018)](https://incompleteideas.net/book/the-book-2nd.html),
+    p. 145, Example 7.1.
     """
 
     def __init__(self):

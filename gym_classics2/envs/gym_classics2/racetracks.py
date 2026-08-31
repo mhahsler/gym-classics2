@@ -13,7 +13,9 @@ class Racetrack1(Racetrack):
     components from being zero simultaneously, no such restriction is enforced in this
     implementation.
 
-    **reference:** cite{3} (page 112, figure 5.5, left).
+    **Reference:** Sutton and Barto,
+    [*Reinforcement Learning: An Introduction* (2nd ed., 2018)](https://incompleteideas.net/book/the-book-2nd.html),
+    p. 112, Figure 5.5 (left).
 
     **state:** Racecar position and velocity.
 
@@ -68,7 +70,9 @@ class Racetrack1(Racetrack):
 class Racetrack2(Racetrack):
     """Same as `Racetrack1` but with a different track layout.
 
-    **reference:** cite{3} (page 112, figure 5.5, right).
+    **Reference:** Sutton and Barto,
+    [*Reinforcement Learning: An Introduction* (2nd ed., 2018)](https://incompleteideas.net/book/the-book-2nd.html),
+    p. 112, Figure 5.5 (right).
     """
 
     layout = """

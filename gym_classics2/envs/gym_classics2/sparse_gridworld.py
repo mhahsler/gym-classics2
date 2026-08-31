@@ -7,7 +7,9 @@ class SparseGridworld(NoisyGridworld):
     from `ClassicGridworld` are used. Great for testing various forms of credit
     assignment in the presence of noise.
 
-    **reference:** cite{3} (page 147, figure 7.4).
+    **Reference:** Sutton and Barto,
+    [*Reinforcement Learning: An Introduction* (2nd ed., 2018)](https://incompleteideas.net/book/the-book-2nd.html),
+    p. 147, Figure 7.4.
 
     **states:** Grid location.
 

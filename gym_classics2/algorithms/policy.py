@@ -86,12 +86,12 @@ def greedy_policy(env, V, discount=1, rng=None):
 
 def greedy_policy_Q(env, Q, discount=1, rng=None):
     """
-    Calculate the greedy policy for a given value function.
+    Calculate the greedy policy for a given action-value function.
     
-    :param env: the environment
-    :param Q: the action value function as a state-by-action numpy array
+    :param env: environment with discrete observation and action spaces
+    :param Q: action-value function as a 2-D NumPy array indexed by state and action
     :param rng: NumPy generator or integer seed used for random tie-breaking
-    :param discount: discount factor
+    :param discount: unused; retained for API compatibility with ``greedy_policy``
     """
     
     assert isinstance(env.action_space, gym.spaces.Discrete)

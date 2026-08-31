@@ -4,7 +4,10 @@ class FourRooms(Gridworld):
     """An 11x11 gridworld segmented into four rooms. The agent begins in the bottom-left
     cell; the goal is in the top-right cell.
 
-    **reference:** cite{2} (page 192).
+    **Reference:** Sutton, Precup, and Singh,
+    [*Between MDPs and Semi-MDPs: A Framework for Temporal Abstraction in
+    Reinforcement Learning* (1999)](https://doi.org/10.1016/S0004-3702%2899%2900052-1),
+    p. 192.
 
     **state**: Grid location.
 
@@ -13,9 +16,6 @@ class FourRooms(Gridworld):
     **rewards**: +1 for episode termination.
 
     **termination**: Taking any action in the goal.
-    
-    Reference: Sutton, Precup and Singh: Between MDPs and semi-MDPs: A framework for temporal abstraction in reinforcement learning. 
-        Artificial Intelligence, 112(1-2):181-211, 1999. [https://hdl.handle.net/20.500.14394/9879] 
     """
 
     layout = """
