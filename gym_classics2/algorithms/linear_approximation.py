@@ -16,43 +16,69 @@ from gym_classics2.algorithms.policy import random_policy
 from gym_classics2.algorithms.schedules import Schedule, ConstantSchedule
 from gym_classics2.envs.abstract.base_env import BaseEnv as GymClassicsBaseEnv
 
-def active_weights(a, sf_len):
-    """Return indices of the intercept and action-specific active weights."""
-    return [0] + list(range(a*sf_len+1, a*sf_len+sf_len+1))
-
 def state_action_features(s, a, env, state_features):
-    """Construct block-coded features using the supplied state feature function."""
+    """Construct the state-action feature vector ``x(s, a)``.
+
+    The state feature vector is expected to have the form
+    ``[1, x1, ..., xd]``, with a leading intercept. The returned vector keeps
+    one shared intercept and has a separate block of the remaining state
+    features for each action. Only the intercept and the weights for ``a`` are
+    selected; all other elements are set to zero.
+
+    Args:
+        s: State to represent.
+        a: Integer ID of the action to represent.
+        env: Environment providing the discrete action space.
+        state_features: Callable that returns ``[1, x1, ..., xd]`` for
+            ``(s, env)``.
+
+    Returns:
+        Block-coded NumPy feature vector for the state-action pair ``(s, a)``.
+    """
+    def active_weights(a, sf_len):
+        return [0] + list(range(a*sf_len+1, a*sf_len+sf_len+1))
+
     s = state_features(s, env)
     x = np.zeros(1+len(s)*env.action_space.n)
     x[active_weights(a, len(s)-1)] = s
     return x
 
 def v_hat(s, w, env, state_features):
-    """Estimate a state's value with a linear approximator.
+    """Compute the linear state-value approximation ``v_hat(s, w)``.
+
+    This evaluates ``w.T @ x(s)``, the weighted sum of the components in the
+    state feature vector ``x(s)``. The weight and feature vectors must have the
+    same length.
 
     Args:
         s: State to evaluate.
-        w: Weight vector.
+        w: Weight vector of the linear approximator.
         env: Environment containing the state.
-        state_features: Callable converting ``(state, env)`` to a feature vector.
+        state_features: Callable returning the feature vector ``x(s)`` for
+            ``(s, env)``.
 
     Returns:
-        Scalar estimate of the value of ``s``.
+        Scalar estimate of the expected return from ``s``.
     """
     return np.dot(w, state_features(s, env))
 
 def q_hat(s, a, w, env, state_features):
-    """Estimate an action value with a linear approximator.
+    """Compute the linear action-value approximation ``q_hat(s, a, w)``.
+
+    This evaluates ``w.T @ x(s, a)`` using the block-coded state-action
+    features produced by :func:`state_action_features`. The weight vector must
+    have the same length as that feature vector.
 
     Args:
         s: State to evaluate.
-        a: Action to evaluate.
-        w: Weight vector.
-        env: Environment containing the state and action.
-        state_features: Callable converting ``(state, env)`` to a feature vector.
+        a: Integer ID of the action to evaluate.
+        w: Weight vector of the linear approximator.
+        env: Environment providing the discrete action space.
+        state_features: Callable returning a state feature vector with a
+            leading intercept for ``(s, env)``.
 
     Returns:
-        Scalar estimate of the value of taking ``a`` in ``s``.
+        Scalar estimate of the expected return from taking ``a`` in ``s``.
     """    
     x = state_action_features(s, a, env, state_features)
     return np.dot(w, x)

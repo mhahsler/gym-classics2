@@ -13,18 +13,6 @@ from gym_classics2.envs.abstract.base_env import BaseEnv
 from gym_classics2.algorithms.policy import random_policy, make_multidiscrete_policy
 from gym_classics2.utils import get_rng, random_argmax
 
-def states(env):
-    """Returns a list of all states in the environment."""
-    assert isinstance(env.observation_space, gym.spaces.Discrete) or isinstance(env.observation_space, gym.spaces.MultiDiscrete), "Tabular methods require discrete state space."  
-    
-    if isinstance(env.observation_space, gym.spaces.Discrete):
-        return list(range(env.observation_space.n))
-    elif isinstance(env.observation_space, gym.spaces.MultiDiscrete):
-        return [tuple(s) for s in np.array(np.meshgrid(*[range(n) for n in env.observation_space.nvec])).T.reshape(-1, len(env.observation_space.nvec))]
-    else:
-        raise ValueError("Unsupported observation space type for state enumeration.")
-
-
 def sample_episode(env, policy=None, start_state=None, start_action=None, epsilon=0,
                    max_len=1000, verbose=False, rng=None):
     """
