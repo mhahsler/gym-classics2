@@ -76,7 +76,7 @@ def semi_gradient_Sarsa_lambda(
     for episode in tqdm(range(n), desc="Semi-Gradient SARSA(lambda)", disable=verbose):
         state, _ = env.reset()
         action = epsilon_greedy_action_w(
-            env, w, state, state_features, epsilon(episode), rng=rng
+            state, w, env, state_features, epsilon(episode), rng=rng
         )
 
         # eligibility trace vector, same size as w
@@ -104,7 +104,7 @@ def semi_gradient_Sarsa_lambda(
                 delta = reward - q_hat(state, action, w, env, state_features)
             else:
                 next_action = epsilon_greedy_action_w(
-                    env, w, next_state, state_features, epsilon(episode), rng=rng
+                    next_state, w, env, state_features, epsilon(episode), rng=rng
                 )
                 delta = reward + gamma * q_hat(next_state, next_action, w, env, state_features) - q_hat(state, action, w, env, state_features)
 

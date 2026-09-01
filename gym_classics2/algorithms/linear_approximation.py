@@ -1,7 +1,7 @@
 """Linear function approximation algorithms for policy evaluation and control.
 
 The algorithms do not require discrete state spaces. Callers provide a
-``state_features(state, env)`` function that converts states to feature vectors.
+``state_features(state, env)`` function that converts states to state feature vectors.
 """
 
 import numpy as np
@@ -46,7 +46,7 @@ def state_action_features(s, a, env, state_features):
 def v_hat(s, w, env, state_features):
     """Compute the linear state-value approximation ``v_hat(s, w)``.
 
-    This evaluates ``w.T @ x(s)``, the weighted sum of the components in the
+    Approximates the state value as ``w^T x(s)``, the weighted sum of the components in the
     state feature vector ``x(s)``. The weight and feature vectors must have the
     same length.
 
@@ -65,8 +65,8 @@ def v_hat(s, w, env, state_features):
 def q_hat(s, a, w, env, state_features):
     """Compute the linear action-value approximation ``q_hat(s, a, w)``.
 
-    This evaluates ``w.T @ x(s, a)`` using the block-coded state-action
-    features produced by :func:`state_action_features`. The weight vector must
+    Estimates the q-value as ``w^T x(s, a)`` using the block-coded state-action
+    features produced by `state_action_features()`. The weight vector must
     have the same length as that feature vector.
 
     Args:
@@ -84,14 +84,14 @@ def q_hat(s, a, w, env, state_features):
     return np.dot(w, x)
 
 def epsilon_greedy_action_w(
-    env, w, state, state_features, epsilon=0, rng=None
+    s, w, env, state_features, epsilon=0, rng=None
 ):
     """Select an epsilon-greedy action from approximate action values.
 
     Args:
-        env: Environment providing the discrete action space.
+        s: Current state.
         w: Weight vector for the action-value approximator.
-        state: Current state.
+        env: Environment providing the discrete action space.
         state_features: Callable converting ``(state, env)`` to a feature vector.
         epsilon: Probability of selecting a uniformly random action.
         rng: NumPy generator or integer seed.
@@ -107,7 +107,7 @@ def epsilon_greedy_action_w(
     
     return random_argmax(
         [
-            q_hat(state, a, w, env, state_features)
+            q_hat(s, a, w, env, state_features)
             for a in range(env.action_space.n)
         ],
         rng=rng,
@@ -257,7 +257,7 @@ def semi_gradient_Sarsa_0(env, state_features, n, epsilon, alpha, gamma, w=None,
     for episode in tqdm(range(n), desc="Semi-Gradient SARSA(0)", disable=verbose):
         state, _ = env.reset()
         action = epsilon_greedy_action_w(
-            env, w, state, state_features, epsilon(episode), rng=rng
+            state, w, env, state_features, epsilon(episode), rng=rng
         )
         done = False
 
@@ -278,7 +278,7 @@ def semi_gradient_Sarsa_0(env, state_features, n, epsilon, alpha, gamma, w=None,
                 
             else:
                 next_action = epsilon_greedy_action_w(
-                    env, w, next_state, state_features, epsilon(episode), rng=rng
+                    next_state, w, env, state_features, epsilon(episode), rng=rng
                 )
                 w += alpha(episode) * (reward + gamma * q_hat(next_state, next_action, w, env, state_features) - q_hat(state, action, w, env, state_features)) * x
 
