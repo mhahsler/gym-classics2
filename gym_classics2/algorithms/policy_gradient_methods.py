@@ -5,8 +5,8 @@ over linear state-action features, and the algorithm estimates the policy gradie
 in the episodes. This implementation allows for learning stochastic policies that can handle exploration and exploitation in 
 reinforcement learning tasks.
 
-The user has to overwrite the state_features function to convert state ids into feature vectors suitable for the environment 
-being used.
+Callers provide a ``state_features(state, env)`` function that converts states
+to feature vectors suitable for the environment being used.
 """
 
 from tqdm import tqdm
@@ -15,22 +15,25 @@ import warnings
 
 import gymnasium as gym
 
-from gym_classics2.algorithms.linear_approximation import state_features, state_action_features, active_weights, q_hat  
-from gym_classics2.envs.abstract.base_env import BaseEnv as GymClassicsBaseEnv
+from gym_classics2.algorithms.linear_approximation import state_action_features
 from gym_classics2.algorithms.schedules import ConstantSchedule
 from gym_classics2.utils import get_rng
 
-def h(s,a,theta,env):
+def h(s, a, theta, env, state_features):
     """Return the linear action preference for state ``s`` and action ``a``."""
-    return np.dot(theta, state_action_features(s,a,env))
+    return np.dot(theta, state_action_features(s, a, env, state_features))
 
-def pi(s,theta,env):
+def pi(s, theta, env, state_features):
     """Return the softmax action-probability vector for a state."""
-    hs = np.array([h(s,a,theta,env) for a in range(env.action_space.n)])
+    hs = np.array(
+        [h(s, a, theta, env, state_features) for a in range(env.action_space.n)]
+    )
     exp_hs = np.exp(hs)
     return exp_hs / np.sum(exp_hs)
 
-def sample_episode_approx_policy(env, pi, theta, max_episode_length=1000, rng=None):
+def sample_episode_approx_policy(
+    env, pi, theta, state_features, max_episode_length=1000, rng=None
+):
     """Sample an episode from a parameterized policy.
 
     Args:
@@ -49,7 +52,9 @@ def sample_episode_approx_policy(env, pi, theta, max_episode_length=1000, rng=No
     episode_data = []
     
     for t in range(max_episode_length):
-        a = rng.choice(env.action_space.n, p=pi(s, theta, env))
+        a = rng.choice(
+            env.action_space.n, p=pi(s, theta, env, state_features)
+        )
         next_s, r, done, _, _ = env.step(a)
         episode_data.append((s, a, r, next_s))
         s = next_s
@@ -59,7 +64,7 @@ def sample_episode_approx_policy(env, pi, theta, max_episode_length=1000, rng=No
     
     return episode_data
 
-def choose_action_w(env, pi, theta, state, rng=None):
+def choose_action_w(env, pi, theta, state, state_features, rng=None):
     """Sample an action from a parameterized policy.
 
     Args:
@@ -73,10 +78,13 @@ def choose_action_w(env, pi, theta, state, rng=None):
         Selected integer action ID.
     """
     rng = get_rng(rng)
-    return rng.choice(env.action_space.n, p=pi(state, theta, env))
+    return rng.choice(
+        env.action_space.n, p=pi(state, theta, env, state_features)
+    )
 
 def REINFORCE(
     env,
+    state_features,
     n,
     alpha,
     gamma,
@@ -90,6 +98,7 @@ def REINFORCE(
 
     Args:
         env: Episodic environment used to generate experience.
+        state_features: Callable converting ``(state, env)`` to a feature vector.
         n: Number of training episodes.
         alpha: Policy step size or schedule.
         gamma: Discount factor in ``[0, 1]``.
@@ -120,7 +129,9 @@ def REINFORCE(
 
     if theta is None:
         state, _ = env.reset()
-        theta = np.zeros(len(state_action_features(state, 0, env)))
+        theta = np.zeros(
+            len(state_action_features(state, 0, env, state_features))
+        )
     
     if history:
         returns = []        
@@ -134,7 +145,7 @@ def REINFORCE(
         
         # sample complete episode using pi (this is a MC method)
         episode_data = sample_episode_approx_policy(
-            env, pi, theta, max_episode_length, rng=rng
+            env, pi, theta, state_features, max_episode_length, rng=rng
         )
         
         for t in range(len(episode_data)):
@@ -148,7 +159,11 @@ def REINFORCE(
             s,a,r,next_s = episode_data[t]
             
             # ln policy gradient= x(s,a)- sum_b pi(b|s,theta) x(s,b)
-            grad_log_pi = state_action_features(s, a, env) - sum([pi(s, theta, env)[b] * state_action_features(s, b, env) for b in range(env.action_space.n)])
+            grad_log_pi = state_action_features(s, a, env, state_features) - sum(
+                pi(s, theta, env, state_features)[b]
+                * state_action_features(s, b, env, state_features)
+                for b in range(env.action_space.n)
+            )
             
             if verbose: 
                 print (f"t: {t}, G: {G:.2f}, grad_log_pi: {grad_log_pi}")
@@ -167,6 +182,7 @@ def REINFORCE(
 
 def AC(
     env,
+    state_features,
     n,
     alpha_policy,
     alpha_value,
@@ -180,6 +196,7 @@ def AC(
 
     Args:
         env: Episodic environment used to generate experience.
+        state_features: Callable converting ``(state, env)`` to a feature vector.
         n: Number of training episodes.
         alpha_policy: Step size or schedule for policy updates.
         alpha_value: Step size or schedule for value-function updates.
@@ -215,7 +232,7 @@ def AC(
     # value function weights
     w = np.zeros(len(state_features(state, env)))
     # policy weights
-    theta = np.zeros(len(state_action_features(state, 0, env)))
+    theta = np.zeros(len(state_action_features(state, 0, env, state_features)))
     
     if history:
         returns = []        
@@ -237,7 +254,10 @@ def AC(
         
         while not done and  i < max_episode_length:
             # use actor to determine next action
-            a = rng.choice(env.action_space.n, p=pi(state, theta, env))
+            a = rng.choice(
+                env.action_space.n,
+                p=pi(state, theta, env, state_features),
+            )
 
             # execute action
             next_state, r, done, _, _ = env.step(a)
@@ -249,7 +269,13 @@ def AC(
             w += alpha_value(episode) * td_error * state_features(state, env)
             
             # update actor
-            grad_log_pi = state_action_features(state, a, env) - sum([pi(state, theta, env)[b] * state_action_features(state, b, env) for b in range(env.action_space.n)])
+            grad_log_pi = state_action_features(
+                state, a, env, state_features
+            ) - sum(
+                pi(state, theta, env, state_features)[b]
+                * state_action_features(state, b, env, state_features)
+                for b in range(env.action_space.n)
+            )
             theta += alpha_policy(episode) * disc_factor * td_error * grad_log_pi
         
             G += disc_factor * r

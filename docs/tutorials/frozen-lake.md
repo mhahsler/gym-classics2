@@ -8,6 +8,7 @@ import gymnasium as gym
 from gym_classics2.algorithms.monte_carlo_methods import MC_control_ES
 
 env = gym.make("FrozenLake-v1")
+
 policy, q_values = MC_control_ES(
     env,
     discount=0.99,

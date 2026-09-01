@@ -1,6 +1,7 @@
-"""This file implements linear function approximation algorithms for policy evaluation and control. This is not a tabular approach
-and does not require discrete state spaces. The user needs to implement the state_features function to convert states to feature 
-vectors.
+"""Linear function approximation algorithms for policy evaluation and control.
+
+The algorithms do not require discrete state spaces. Callers provide a
+``state_features(state, env)`` function that converts states to feature vectors.
 """
 
 import numpy as np
@@ -15,50 +16,32 @@ from gym_classics2.algorithms.policy import random_policy
 from gym_classics2.algorithms.schedules import Schedule, ConstantSchedule
 from gym_classics2.envs.abstract.base_env import BaseEnv as GymClassicsBaseEnv
 
-def state_features(s,env):
-    """Convert a state into a feature vector.
-
-    Override this function to provide features such as tile coding, radial basis
-    functions, or a Fourier basis for the target environment.
-
-    Args:
-        s: Environment state.
-        env: Environment containing the state.
-
-    Returns:
-        Feature vector representing ``s``.
-
-    Raises:
-        NotImplementedError: Always, until replaced for the target environment.
-    """
-    raise NotImplementedError("state_features function needs to be implemented by the user. By default, it just concatenates a constant feature (for the intercept) with the state itself. This is equivalent to linear function approximation with a tabular representation.")
-   
-
 def active_weights(a, sf_len):
     """Return indices of the intercept and action-specific active weights."""
     return [0] + list(range(a*sf_len+1, a*sf_len+sf_len+1))
 
-def state_action_features(s,a,env):
-    """Construct a block-coded feature vector for a state-action pair."""
-    s = state_features(s,env)
+def state_action_features(s, a, env, state_features):
+    """Construct block-coded features using the supplied state feature function."""
+    s = state_features(s, env)
     x = np.zeros(1+len(s)*env.action_space.n)
     x[active_weights(a, len(s)-1)] = s
     return x
 
-def v_hat(s, w, env):
+def v_hat(s, w, env, state_features):
     """Estimate a state's value with a linear approximator.
 
     Args:
         s: State to evaluate.
         w: Weight vector.
         env: Environment containing the state.
+        state_features: Callable converting ``(state, env)`` to a feature vector.
 
     Returns:
         Scalar estimate of the value of ``s``.
     """
     return np.dot(w, state_features(s, env))
 
-def q_hat(s, a, w, env):
+def q_hat(s, a, w, env, state_features):
     """Estimate an action value with a linear approximator.
 
     Args:
@@ -66,20 +49,24 @@ def q_hat(s, a, w, env):
         a: Action to evaluate.
         w: Weight vector.
         env: Environment containing the state and action.
+        state_features: Callable converting ``(state, env)`` to a feature vector.
 
     Returns:
         Scalar estimate of the value of taking ``a`` in ``s``.
     """    
-    x = state_action_features(s, a, env)
+    x = state_action_features(s, a, env, state_features)
     return np.dot(w, x)
 
-def epsilon_greedy_action_w(env, w, state, epsilon=0, rng=None):
+def epsilon_greedy_action_w(
+    env, w, state, state_features, epsilon=0, rng=None
+):
     """Select an epsilon-greedy action from approximate action values.
 
     Args:
         env: Environment providing the discrete action space.
         w: Weight vector for the action-value approximator.
         state: Current state.
+        state_features: Callable converting ``(state, env)`` to a feature vector.
         epsilon: Probability of selecting a uniformly random action.
         rng: NumPy generator or integer seed.
 
@@ -93,7 +80,10 @@ def epsilon_greedy_action_w(env, w, state, epsilon=0, rng=None):
         return rng.integers(env.action_space.n)
     
     return random_argmax(
-        [q_hat(state, a, w, env) for a in range(env.action_space.n)],
+        [
+            q_hat(state, a, w, env, state_features)
+            for a in range(env.action_space.n)
+        ],
         rng=rng,
     )
 
@@ -116,7 +106,16 @@ def MSVE(V, V_true, weight=None):
     return np.sum(weight * (V - V_true)**2)
 
 
-def semi_gradient_TD0_estimation(env, policy, n, alpha, gamma, max_episode_length=1000, verbose =False):
+def semi_gradient_TD0_estimation(
+    env,
+    state_features,
+    policy,
+    n,
+    alpha,
+    gamma,
+    max_episode_length=1000,
+    verbose=False,
+):
     """Estimate state values with semi-gradient TD(0).
 
     This function runs TD(0) learning with function approximation over multiple
@@ -125,6 +124,7 @@ def semi_gradient_TD0_estimation(env, policy, n, alpha, gamma, max_episode_lengt
 
     Args:
         env: Episodic Gymnasium environment used to generate experience.
+        state_features: Callable converting ``(state, env)`` to a feature vector.
         policy: Deterministic policy indexed by state.
         n: Number of training episodes.
         alpha: Step size or schedule.
@@ -161,9 +161,9 @@ def semi_gradient_TD0_estimation(env, policy, n, alpha, gamma, max_episode_lengt
             # Semi-gradient TD(0) update
             # Note: v_hat(terminal, w) needs to be 0
             if terminated:
-                w += alpha(episode) * (reward - v_hat(state, w, env)) * state_features(state, env)    
+                w += alpha(episode) * (reward - v_hat(state, w, env, state_features)) * state_features(state, env)
             else: 
-                w += alpha(episode) * (reward + gamma * v_hat(next_state, w, env) - v_hat(state, w, env)) * state_features(state, env)
+                w += alpha(episode) * (reward + gamma * v_hat(next_state, w, env, state_features) - v_hat(state, w, env, state_features)) * state_features(state, env)
              
             if verbose:
                 print (f"Episode {episode+1}, Step {i+1}: S={state}, A={action}, R={reward}, S'={next_state}, w={w}")
@@ -174,7 +174,7 @@ def semi_gradient_TD0_estimation(env, policy, n, alpha, gamma, max_episode_lengt
     return w
 
 
-def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w=None,
+def semi_gradient_Sarsa_0(env, state_features, n, epsilon, alpha, gamma, w=None,
                           max_episode_length=1000, verbose=False,
                           history=False, rng=None):
     """Run semi-gradient Sarsa(0) with function approximation.
@@ -188,6 +188,7 @@ def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w=None,
 
     Args:
         env: Episodic environment used to generate experience.
+        state_features: Callable converting ``(state, env)`` to a feature vector.
         n: Number of training episodes.
         epsilon: Exploration rate or schedule for the epsilon-greedy policy.
         alpha: Step size or schedule.
@@ -219,7 +220,7 @@ def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w=None,
 
     if w is None:
         state, _ = env.reset()
-        w = np.zeros(len(state_action_features(state, 0, env)))
+        w = np.zeros(len(state_action_features(state, 0, env, state_features)))
 
     if history:
         ws = []
@@ -229,7 +230,9 @@ def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w=None,
     
     for episode in tqdm(range(n), desc="Semi-Gradient SARSA(0)", disable=verbose):
         state, _ = env.reset()
-        action = epsilon_greedy_action_w(env, w, state, epsilon(episode), rng=rng)
+        action = epsilon_greedy_action_w(
+            env, w, state, state_features, epsilon(episode), rng=rng
+        )
         done = False
 
         i = 0
@@ -241,17 +244,17 @@ def semi_gradient_Sarsa_0(env, n, epsilon, alpha, gamma, w=None,
             next_state, reward, terminated, truncated, _ = env.step(action)
             done = terminated or truncated
             
-            x = state_action_features(state, action, env)
+            x = state_action_features(state, action, env, state_features)
             
             if terminated:
                 next_action = None
-                w += alpha(episode) * (reward - q_hat(state, action, w, env)) * x
+                w += alpha(episode) * (reward - q_hat(state, action, w, env, state_features)) * x
                 
             else:
                 next_action = epsilon_greedy_action_w(
-                    env, w, next_state, epsilon(episode), rng=rng
+                    env, w, next_state, state_features, epsilon(episode), rng=rng
                 )
-                w += alpha(episode) * (reward + gamma * q_hat(next_state, next_action, w, env) - q_hat(state, action, w, env)) * x
+                w += alpha(episode) * (reward + gamma * q_hat(next_state, next_action, w, env, state_features) - q_hat(state, action, w, env, state_features)) * x
 
             if verbose:
                 print (f"Episode {episode+1}, Step {i+1}: S={state}, A={action}, R={reward}, S'={next_state}, w={w}")

@@ -1,50 +1,23 @@
-"""This file implements the semi-gradient SARSA(lambda) algorithm for control with linear function approximation and eligibility traces. 
-The user needs to implement the state_features function to convert states to feature vectors."""
+"""Semi-gradient Sarsa(lambda) with linear function approximation.
+
+Callers provide a ``state_features(state, env)`` function that converts states
+to feature vectors.
+"""
 
 import numpy as np
-from itertools import product
 from tqdm import tqdm
 
-from gym_classics2.algorithms.linear_approximation import state_features, state_action_features, q_hat, epsilon_greedy_action_w
+from gym_classics2.algorithms.linear_approximation import (
+    epsilon_greedy_action_w,
+    q_hat,
+    state_action_features,
+)
 from gym_classics2.algorithms.schedules import Schedule, ConstantSchedule
-from gym_classics2.envs.abstract.base_env import BaseEnv as GymClassicsBaseEnv
 from gym_classics2.utils import get_rng
-
-def state_features(s, env):
-    """Convert a state ID into a feature vector.
-
-    Override this function for the target environment before running an
-    approximation algorithm.
-
-    Args:
-        s: State ID.
-        env: Environment containing the state.
-
-    Returns:
-        Feature vector representing ``s``.
-
-    Raises:
-        NotImplementedError: Always, until replaced for the target environment.
-    """
-    raise NotImplementedError("state_features function must be implemented and overwrite gym_classics2.algorithms.linear_approximation.state_features.") 
-
-def active_weights(a, sf_len):
-    """Return indices of the intercept and action-specific active weights."""
-    return [0] + list(range(a*sf_len+1, a*sf_len+sf_len+1))
-
-def state_action_features(s,a,env):
-    """Construct a block-coded feature vector for a state-action pair.
-
-    The active block is chosen by ``a`` and populated with ``state_features(s,
-    env)``. Override :func:`state_features` for the target environment.
-    """
-    s = state_features(s,env)
-    x = np.zeros(1+len(s)*env.action_space.n)
-    x[active_weights(a, len(s)-1)] = s
-    return x
 
 def semi_gradient_Sarsa_lambda(
     env,
+    state_features,
     n,
     epsilon,
     alpha,
@@ -60,6 +33,7 @@ def semi_gradient_Sarsa_lambda(
 
     Args:
         env: Episodic environment used to generate experience.
+        state_features: Callable converting ``(state, env)`` to a feature vector.
         n: Number of episodes.
         epsilon: Exploration rate or schedule for the epsilon-greedy policy.
         alpha: Step size or schedule.
@@ -90,7 +64,7 @@ def semi_gradient_Sarsa_lambda(
 
     if w is None:
         state, _ = env.reset()
-        w = np.zeros(len(state_action_features(state, 0, env)))
+        w = np.zeros(len(state_action_features(state, 0, env, state_features)))
 
     if history:
         ws = []
@@ -102,7 +76,7 @@ def semi_gradient_Sarsa_lambda(
     for episode in tqdm(range(n), desc="Semi-Gradient SARSA(lambda)", disable=verbose):
         state, _ = env.reset()
         action = epsilon_greedy_action_w(
-            env, w, state, epsilon(episode), rng=rng
+            env, w, state, state_features, epsilon(episode), rng=rng
         )
 
         # eligibility trace vector, same size as w
@@ -121,22 +95,22 @@ def semi_gradient_Sarsa_lambda(
             G += reward * (gamma ** i)  # accumulate return if history is enabled
 
             # current feature vector for (state, action)
-            x = state_action_features(state, action, env)
+            x = state_action_features(state, action, env, state_features)
 
             # update trace
             z = gamma * lam * z + (1 - alpha(episode) * gamma * lam * np.dot(z, x)) * x
 
             if terminated:
-                delta = reward - q_hat(state, action, w, env)
+                delta = reward - q_hat(state, action, w, env, state_features)
             else:
                 next_action = epsilon_greedy_action_w(
-                    env, w, next_state, epsilon(episode), rng=rng
+                    env, w, next_state, state_features, epsilon(episode), rng=rng
                 )
-                delta = reward + gamma * q_hat(next_state, next_action, w, env) - q_hat(state, action, w, env)
+                delta = reward + gamma * q_hat(next_state, next_action, w, env, state_features) - q_hat(state, action, w, env, state_features)
 
             # semi-gradient weight update
-            Q = q_hat(state, action, w, env)
-            Q_prime = q_hat(next_state, next_action, w, env) if not terminated else 0            
+            Q = q_hat(state, action, w, env, state_features)
+            Q_prime = q_hat(next_state, next_action, w, env, state_features) if not terminated else 0
             w += alpha(episode) * (delta + Q - Q_old) * z - alpha(episode) * (Q - Q_old) * x
 
             Q_old = Q_prime
