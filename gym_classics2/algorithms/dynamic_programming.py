@@ -119,14 +119,14 @@ def policy_evaluation(env, discount, policy, precision=1e-3, max_backups=1000):
     return V
 
 
-def policy_improvement(env, discount, policy, V_policy, precision=1e-3):
+def policy_improvement(policy, V_policy, env, discount, precision=1e-3):
     """Improves the policy based on the given value function.
     
     Args:
-        env: A gym-classics environment with model access.
-        discount: The discount factor (0 <= discount <= 1).
         policy: The current policy to improve.
         V_policy: The value function of the current policy.
+        env: A gym-classics environment with model access.
+        discount: The discount factor (0 <= discount <= 1).
         precision: The precision for determining stability (default: 1e-3).
         
     Returns:
@@ -187,7 +187,7 @@ def policy_iteration(env, discount, precision=1e-3, max_backups=1000, history=Fa
         if history:
             V_list.append(V_policy.copy())
 
-        policy, stable = policy_improvement(env, discount, policy, V_policy, precision)
+        policy, stable = policy_improvement(policy, V_policy, env, discount, precision)
              
         if stable:
             break

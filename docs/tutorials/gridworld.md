@@ -12,7 +12,7 @@ gym_classics2.register()
 env = gym.make("ClassicGridworld-v1", tabular=True).unwrapped
 
 values = value_iteration(env, discount=0.99, precision=1e-6)
-policy = greedy_policy(env, values, discount=0.99)
+policy = greedy_policy(values, env, discount=0.99)
 
 env.print(values)
 env.print(env.id2action(policy))

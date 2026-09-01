@@ -90,7 +90,7 @@ def sample_episode(env, policy=None, start_state=None, start_action=None, epsilo
     return(episode)
 
 
-def on_policy_state_distribution(env, pol, discount=1, epsilon=0, n=100,
+def on_policy_state_distribution(policy, env, discount=1, epsilon=0, n=100,
                                  verbose=False, rng=None):
     """Estimate a policy's state distribution using ``rng`` for exploration."""
     
@@ -103,7 +103,7 @@ def on_policy_state_distribution(env, pol, discount=1, epsilon=0, n=100,
     state_counts = np.zeros(env.observation_space.n)
     
     for _ in tqdm(range(n), desc="Sampling Episodes", disable=verbose):
-        episode = np.array(sample_episode(env, policy=pol, epsilon=epsilon, rng=rng))
+        episode = np.array(sample_episode(env, policy=policy, epsilon=epsilon, rng=rng))
         states = np.append(episode[:,0], episode[-1,3])
         discounts = np.array([discount**i for i in range(len(states))])
         for s, d in zip(states, discounts):
@@ -113,13 +113,13 @@ def on_policy_state_distribution(env, pol, discount=1, epsilon=0, n=100,
     return state_prob
 
 
-def MC_prediction(env, policy, discount, n=100, max_episode_len=100,
+def MC_prediction(policy, env, discount, n=100, max_episode_len=100,
                   verbose=False, rng=None):
     """Estimate a policy's state values with first-visit Monte Carlo prediction.
 
     Args:
-        env: Gymnasium environment with a discrete observation space.
         policy: Array-like mapping from state IDs to action IDs.
+        env: Gymnasium environment with a discrete observation space.
         discount: Reward discount factor.
         n: Number of episodes to sample.
         max_episode_len: Maximum sampled steps per episode.

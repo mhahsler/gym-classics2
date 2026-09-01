@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gym-classics2"
-version = "1.0.1"
+version = "1.0.2"
 description = "Classic discrete reinforcement-learning environments and textbook algorithms for Gymnasium"
 readme = "README.md"
 requires-python = ">=3.9"

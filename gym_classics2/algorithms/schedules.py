@@ -3,6 +3,19 @@
 A schedule is a callable that maps a nonnegative episode or step index ``t`` to
 a floating-point value. The included algorithms use schedules to vary parameters
 such as the step size (alpha) and exploration rate (epsilon) during training.
+
+For example, a linear schedule can decrease epsilon from 1.0 to 0.1 over
+10 steps:
+
+```python
+schedule = LinearDecaySchedule(1.0, min_value=0.1, decay_steps=10)
+for t in (0, 5, 10, 15):
+    print(t, schedule(t))
+# 0 1.0
+# 5 0.55
+# 10 0.1
+# 15 0.1
+```
 """
 
 import numpy as np

@@ -40,7 +40,7 @@ def random_policy(env, rng=None):
         return make_multidiscrete_policy(rng.integers(env.action_space.n, size=len(env.states())), env)
 
 # only for gym-classics environments!
-def encode_policy(env, policy, type = "text"):
+def encode_policy(policy, env, type = "text"):
     """
     Encode a policy for display. The policy is represented as a numpy array where each entry corresponds to an action for a state.
     The function returns a list of action names corresponding to the actions in the policy.
@@ -59,12 +59,12 @@ def _backup(env, discount, V, s, a):
     bootstraps = (1.0 - terminals) * V[next_states]
     return np.sum(probs * (rewards + discount * bootstraps))
 
-def greedy_policy(env, V, discount=1, rng=None):
+def greedy_policy(V, env, discount=1, rng=None):
     """Calculate a greedy policy from a state-value function.
 
     Args:
-        env: Environment with a discrete state space and model access.
         V: One-dimensional state-value array.
+        env: Environment with a discrete state space and model access.
         discount: Discount factor in ``[0, 1]``.
         rng: NumPy generator or integer seed for random tie-breaking.
 
@@ -87,12 +87,12 @@ def greedy_policy(env, V, discount=1, rng=None):
 
     return policy
 
-def greedy_policy_Q(env, Q, discount=1, rng=None):
+def greedy_policy_Q(Q, env, discount=1, rng=None):
     """Calculate a greedy policy from an action-value function.
 
     Args:
-        env: Environment with discrete observation and action spaces.
         Q: Two-dimensional action-value array indexed by state and action.
+        env: Environment with discrete observation and action spaces.
         discount: Unused; retained for API compatibility with ``greedy_policy``.
         rng: NumPy generator or integer seed for random tie-breaking.
 
