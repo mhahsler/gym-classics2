@@ -260,6 +260,8 @@ def MC_control_ES(env, discount, n=100, Q=None, max_episode_len=100,
                  and episodes for each iteration. This can be useful for analysis and visualization, but it will consume more memory.
         verbose: If True, the function will print progress and episode details. If verbose > 1, it will also print the state transitions and rewards for each step in the episode.
         rng: NumPy generator or integer seed for all algorithm choices.
+    
+
     Returns:    If history is False: A tuple (policy, Q) where policy is the learned greedy policy and Q is the learned action-value function.
         If history is True: A tuple (pol_list, Q_list, ep_list) where pol_list is a list of policies for each iteration, Q          
         is a list of Q-value functions for each iteration, and ep_list is a list of episodes sampled in each iteration.
