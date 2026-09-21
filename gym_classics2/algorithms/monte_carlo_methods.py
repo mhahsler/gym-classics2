@@ -179,8 +179,7 @@ def MC_control_ES_textbook(env, discount, n=100, Q=None, max_episode_len=100,
         rng: NumPy generator or integer seed for all algorithm choices.
 
     Returns:
-        ``(policy, Q)``. If ``history=True``, a third item contains the history
-        dictionary with ``policies``, ``Q_values``, ``episodes``, and ``returns``.
+        ``(policy, Q)``. If ``history=True``, a third item contains the history dictionary with ``policies``, ``Q_values``, ``episodes``, and ``returns``.
     """
     assert isinstance(env.observation_space, gym.spaces.Discrete), "Tabular methods require discrete state space."  
     assert n > 0
@@ -263,8 +262,7 @@ def MC_control_ES(env, discount, n=100, Q=None, max_episode_len=100,
         rng: NumPy generator or integer seed for all algorithm choices.
 
     Returns:
-        ``(policy, Q)``. If ``history=True``, a third item contains the history
-        dictionary with ``policies``, ``Q_values``, ``episodes``, and ``returns``.
+        ``(policy, Q)``. If ``history=True``, a third item contains the history dictionary with ``policies``, ``Q_values``, ``episodes``, and ``returns``.
     """
     
     assert isinstance(env.observation_space, gym.spaces.Discrete), "Tabular methods require discrete state space."  
