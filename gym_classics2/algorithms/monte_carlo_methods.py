@@ -251,20 +251,20 @@ def MC_control_ES(env, discount, n=100, Q=None, max_episode_len=100,
                   history=False, verbose=False, rng=None):
     """Monte Carlo Control with Exploring Starts (incremental version).
     This algorithm estimates the optimal action-value function Q and the corresponding greedy policy by sampling episodes with exploring starts. It uses incremental updates to compute the average returns for each (s,a) pair, which is more memory efficient than storing all returns.
-    Args: env: The environment to interact with. Must have discrete state and action spaces.
-        discount: The discount factor (gamma) for future rewards. Should be in (0, 1].
-        n: The number of episodes to sample for learning. Must be a positive integer.
-        Q: Optional initial action-value function. If None, it will be initialized to zeros.
-        max_episode_len: Maximum length of each episode to prevent infinite loops. Must be a positive integer.
-        history: If True, the function will return the history of policies, Q-values, and
-                 and episodes for each iteration. This can be useful for analysis and visualization, but it will consume more memory.
-        verbose: If True, the function will print progress and episode details. If verbose > 1, it will also print the state transitions and rewards for each step in the episode.
-        rng: NumPy generator or integer seed for all algorithm choices.
     
+    Args:
+        env: A tabular ``gym_classics2`` environment.
+        discount: Reward discount factor.
+        n: Number of episodes to sample.
+        Q: Optional initial action-value array.
+        max_episode_len: Maximum sampled steps per episode.
+        history: Retain intermediate policies, Q arrays, episodes, and returns. Note: retaining the history may require a lot of memory.
+        verbose: Print episode details; values greater than one print transitions.
+        rng: NumPy generator or integer seed for all algorithm choices.
 
-    Returns:    If history is False: A tuple (policy, Q) where policy is the learned greedy policy and Q is the learned action-value function.
-        If history is True: A tuple (pol_list, Q_list, ep_list) where pol_list is a list of policies for each iteration, Q          
-        is a list of Q-value functions for each iteration, and ep_list is a list of episodes sampled in each iteration.
+    Returns:
+        ``(policy, Q)``. If ``history=True``, a third item contains the history
+        dictionary with ``policies``, ``Q_values``, ``episodes``, and ``returns``.
     """
     
     assert isinstance(env.observation_space, gym.spaces.Discrete), "Tabular methods require discrete state space."  
