@@ -126,8 +126,8 @@ for input requirements and return values.
 ## Documentation and examples
 
 - [Documentation](https://mhahsler.github.io/gym-classics2/)
-- [4×3 Gridworld: value and policy iteration](examples/4x3_grid_world.ipynb)
-- [Frozen Lake: Monte Carlo methods](examples/frozen_lake_MC.ipynb)
+- [4×3 Gridworld: value and policy iteration](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/4x3_grid_world.ipynb)
+- [Frozen Lake: Monte Carlo methods](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/frozen_lake_MC.ipynb)
 - [Course materials](https://mhahsler.github.io/Introduction_to_Reinforcement_Learning/)
 
 To build the documentation locally:
