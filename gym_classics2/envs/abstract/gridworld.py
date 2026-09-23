@@ -34,10 +34,29 @@ class Gridworld(BaseEnv):
     Other characters are traversable labels retained for plotting. Optional ``|``
     characters are ignored when the layout is parsed.
 
-    The default actions move up, right, down, and left. An action that would cross
-    the boundary or enter a blocked cell leaves the agent in place. Entering a goal
-    yields ``goal_reward`` and terminates the episode; other transitions yield
-    ``step_reward``.
+    Actions and transitions:
+
+    The default actions move up, right, down, and left and are represented in that 
+    order by the integers 0 to 3. The default transition model is deterministic.
+    An action that would leave the gridworld or enter 
+    a blocked cell leaves the agent in place. Additional actions can be added in the constructor and will use 
+    integer IDs starting at 4. The transition model can be changed
+    by subclassing and overwriting ``_next_state``. 
+    
+    For an example of a stochastic transition model, see :class:`ClassicGridworld`
+    
+    Reward model:
+    
+    Entering a goal yields ``goal_reward`` and terminates the episode; other transitions yield
+    ``step_reward``. Since goal states are terminal (absorbing), the reward for a transition from 
+    a goal state is always zero.
+    
+    The default setting is for a world without step cost and reaching the goal is rewarded with 1.0. If you 
+    want to use a step cost, set ``step_reward`` to a negative value. Note that the ``goal_reward`` 
+    is for the transition to the goal state and thus needs to be 
+    adjusted to reflect the positive reward for reaching the goal minus the cost of getting there.
+    
+    You can also overwrite the ``_reward`` method to implement a custom reward model.
 
     Args:
         layout_string: Rectangular ASCII representation of the grid.
@@ -77,40 +96,18 @@ class Gridworld(BaseEnv):
             self.observation_space = MultiDiscrete(self.dims)
 
     @property
-    def goal_states(self):
-        """Tuple containing the raw terminal goal coordinates."""
-        return tuple(sorted(self._goals))
-
     def _next_state(self, state, action, *random_elements):
         next_state = self._move(state, action)
         if self._is_blocked(next_state):
             next_state = state
         return self._clamp(next_state), 1.0
-
-    def _move(self, state, action):
-        x, y = state
-        return {
-            0: (x,   y+1),  # Up
-            1: (x+1, y),    # Right
-            2: (x,   y-1),  # Down
-            3: (x-1, y)     # Left
-        }[action]
-
-    def _clamp(self, state):
-        """Clamps the state within the grid dimensions."""
-        x, y = state
-        x = max(0, min(x, self.dims[0] - 1))
-        y = max(0, min(y, self.dims[1] - 1))
-        return (x, y)
-
-    def _is_blocked(self, state):
-        """Returns True if this state cannot be occupied, False otherwise."""
-        return state in self._blocks
-
+    
     def _generate_transitions(self, state, action):
         yield self._deterministic_step(state, action)
-        
+    
     def _reward(self, state, action, next_state):      
+        if state in self._goals:
+            return 0.0
         if next_state in self._goals: 
             return self._goal_reward 
         return self._step_reward
@@ -135,6 +132,30 @@ class Gridworld(BaseEnv):
             self._render_frame()
         
         return observation, info
+    
+    def _move(self, state, action):
+        x, y = state
+        return {
+            0: (x,   y+1),  # Up
+            1: (x+1, y),    # Right
+            2: (x,   y-1),  # Down
+            3: (x-1, y)     # Left
+        }[action]
+
+    def _clamp(self, state):
+        """Clamps the state within the grid dimensions."""
+        x, y = state
+        x = max(0, min(x, self.dims[0] - 1))
+        y = max(0, min(y, self.dims[1] - 1))
+        return (x, y)
+
+    def goal_states(self):
+        """Tuple containing the raw terminal goal coordinates."""
+        return tuple(sorted(self._goals))
+
+    def _is_blocked(self, state):
+        """Returns True if this state cannot be occupied, False otherwise."""
+        return state in self._blocks
     
     def close(self):
         """Release any PyGame display resources."""
