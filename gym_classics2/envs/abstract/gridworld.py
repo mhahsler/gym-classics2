@@ -43,7 +43,8 @@ class Gridworld(BaseEnv):
     integer IDs starting at 4. The transition model can be changed
     by subclassing and overwriting ``_next_state``. 
     
-    For an example of a stochastic transition model, see :class:`ClassicGridworld`
+    For an example of a stochastic transition model, see
+    [ClassicGridworld][gym_classics2.envs.gym_classics2.classic_gridworld_v1.ClassicGridworld].
     
     Reward model:
     
