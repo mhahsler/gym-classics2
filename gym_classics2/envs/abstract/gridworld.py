@@ -96,6 +96,10 @@ class Gridworld(BaseEnv):
             self.observation_space = MultiDiscrete(self.dims)
 
     @property
+    def goal_states(self):
+        """Tuple containing the raw terminal goal coordinates."""
+        return tuple(sorted(self._goals))
+
     def _next_state(self, state, action, *random_elements):
         next_state = self._move(state, action)
         if self._is_blocked(next_state):
@@ -148,10 +152,6 @@ class Gridworld(BaseEnv):
         x = max(0, min(x, self.dims[0] - 1))
         y = max(0, min(y, self.dims[1] - 1))
         return (x, y)
-
-    def goal_states(self):
-        """Tuple containing the raw terminal goal coordinates."""
-        return tuple(sorted(self._goals))
 
     def _is_blocked(self, state):
         """Returns True if this state cannot be occupied, False otherwise."""
