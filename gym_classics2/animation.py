@@ -5,12 +5,13 @@ import matplotlib.pyplot as plt
 # for animation
 from matplotlib import animation, rc
 from IPython.display import HTML
+from tqdm.auto import tqdm
 #rc('animation', html='html5')
 rc('animation', html='jshtml')
 
 ### Visualization function
 
-def gridworld_animate(env, Vs, policies = None, interval = 1000, repeat=False, cmap = "coolwarm", clim = None, origin='lower'):
+def gridworld_animate(env, Vs, policies = None, interval = 1000, repeat=False, cmap = "coolwarm", clim = None, origin='lower', progress=False):
     """Animate a sequence of gridworld value functions and policies.
 
     Args:
@@ -23,6 +24,7 @@ def gridworld_animate(env, Vs, policies = None, interval = 1000, repeat=False, c
         clim: Optional ``(minimum, maximum)`` limits for the color scale.
         origin: ``"lower"`` places coordinate ``(0, 0)`` at the lower-left;
             ``"upper"`` places it at the upper-left.
+        progress: Show a progress bar when frames are rendered for display or saving.
 
     Returns:
         Matplotlib ``FuncAnimation`` object.
@@ -73,13 +75,24 @@ def gridworld_animate(env, Vs, policies = None, interval = 1000, repeat=False, c
             (i,j) = env.id2state(s)
             labels.append(ax.text(i, j, '', ha='center', va='center', color='black', fontsize=10))
 
+    progress_bar = None
+
     def step(i):
+        nonlocal progress_bar
         im = ax.imshow(mazes[i], cmap=cmap, origin=origin, vmin = vmin, vmax=vmax)
-        title.set_text(f'After Iteration {i}')
+        title.set_text(f'After Iteration/Episode/Step {i}')
         
         if not policies is None:
             for pos, a in enumerate(policies[i]):
                 labels[pos].set_text(a)
+
+        if progress:
+            if progress_bar is None:
+                progress_bar = tqdm(total=len(mazes), desc="Animation frames")
+            progress_bar.update(1)
+            if i == len(mazes) - 1:
+                progress_bar.close()
+                progress_bar = None
         
         return im, title, *labels,
 
