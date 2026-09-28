@@ -6,6 +6,10 @@ repo_name: mhahsler/gym-classics2
 
 theme:
   name: material
+  palette:
+    scheme: default
+    primary: white
+    accent: blue
   features:
     - navigation.sections
     - navigation.top
