@@ -33,6 +33,9 @@ class Schedule:
             Scheduled scalar value at ``t``.
         """
         raise NotImplementedError
+    
+    def __repr__(self):
+        return f"{type(self).__name__}(" + ", ".join([f"{k}={v}" for k, v in self.__dict__.items()]) + ")"
 
 class ConstantSchedule(Schedule):
     """Return the same value for every index.
@@ -48,6 +51,8 @@ class ConstantSchedule(Schedule):
 
 class StepSchedule(Schedule):
     """Switch once from a high value to a low value.
+
+    Typical use: Only when you have observed in experiments when training performance plateaus. 
 
     The schedule returns ``high_value`` while ``t < steps`` and ``low_value``
     from ``t == steps`` onward.
@@ -69,6 +74,8 @@ class StepSchedule(Schedule):
 
 class LinearDecaySchedule(Schedule):
     """Interpolate linearly from an initial value to a final value.
+    
+    Typical use: Transformers, NLP fine-tuning
 
     The schedule returns ``initial_value`` at ``t = 0``, changes linearly through
     ``decay_steps``, and returns ``min_value`` thereafter.
@@ -87,8 +94,15 @@ class LinearDecaySchedule(Schedule):
         fraction = min(float(t) / max(1, self.decay_steps), 1.0)
         return self.initial_value + fraction * (self.min_value - self.initial_value)
 
+
 class ExponentialDecaySchedule(Schedule):
     """Decay geometrically to a minimum value.
+    
+    Typical use: Deterministic or stationary environments. Rapidly scaling down works
+        well with algorithms that start with no information (e.g., all Q-values are randomly initialized
+        for tabular methods).
+
+    Do not use this for complex, multi-stage RL tasks.
 
     At index ``t``, the value is ``max(min_value, initial_value * decay_rate**t)``.
 
@@ -124,7 +138,37 @@ class InverseDecaySchedule(Schedule):
             return self.initial_value
         return max(self.min_value, self.initial_value / t)
 
-def plot_schedule(schedule, steps=1000):
+class CosineAnnealingSchedule(Schedule):
+    """Anneal from an initial value to a final value along a half-cosine curve.
+
+    It starts with lots of exploration and then switches to to fine grained-exploration.
+
+    Typical use: PPO and deep RL
+
+    The schedule returns ``initial_value`` at ``t = 0``, reaches ``min_value``
+    at ``decay_steps``, and stays there without restarting.
+
+    Args:
+        initial_value: Value at index zero.
+        min_value: Final value and lower endpoint of a decreasing schedule.
+        decay_steps: Number of indices over which to anneal.
+    """
+    def __init__(self, initial_value, min_value, decay_steps, warm_restarts = False):
+        self.initial_value = float(initial_value)
+        self.min_value = float(min_value)
+        self.decay_steps = int(decay_steps)
+        self.warm_restarts = bool(warm_restarts)
+
+    def __call__(self, t):
+        if (not self.warm_restarts):
+            fraction = min(float(t) / max(1, self.decay_steps), 1.0)
+        else:
+            fraction = min(float(t % self.decay_steps) / max(1, self.decay_steps), 1.0)
+        return self.min_value + 0.5 * (self.initial_value - self.min_value) * (
+            1.0 + np.cos(np.pi * fraction)
+        )
+
+def plot_schedule(schedule, steps=1000, title = None):
     """Plot scheduled values for indices ``0`` through ``steps - 1``.
     
     Example:
@@ -150,6 +194,6 @@ def plot_schedule(schedule, steps=1000):
     plt.plot(range(steps), values, linewidth=2)
     plt.xlabel('Step')
     plt.ylabel('Schedule Value')
-    plt.title('Schedule Plot')
+    plt.title(title if title is not None else repr(schedule))
     plt.grid(True)
     plt.show()
