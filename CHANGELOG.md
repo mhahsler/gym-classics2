@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Require Python 3.10 or newer; drop Python 3.9 support.
+- Add Python 3.15 to the CI test matrix.
+
 ## 1.0.2 - 2026-09-01
 
 ### Added

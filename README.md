@@ -22,7 +22,7 @@ The package includes:
 
 ## Installation
 
-Python 3.9 or newer is required. To install the current development version:
+Python 3.10 or newer is required. To install the current development version:
 
 ```bash
 python -m pip install "gym-classics2 @ git+https://github.com/mhahsler/gym-classics2.git"

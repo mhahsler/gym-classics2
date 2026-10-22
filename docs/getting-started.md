@@ -2,7 +2,7 @@
 
 ## Install
 
-`gym_classics2` requires Python 3.9 or newer. Install the current version from
+`gym_classics2` requires Python 3.10 or newer. Install the current version from
 GitHub:
 
 ```bash
