@@ -86,7 +86,7 @@ def value_iteration(env, discount, precision=1e-3, history = False, verbose = Fa
 
 ### Policy Iteration
 
-def policy_evaluation(env, discount, policy, precision=1e-3, max_backups=1000):
+def policy_evaluation(env, discount, policy, precision=1e-3, max_backups=1000, verbose=False):
     """Evaluates a given policy to compute its value function.
     
     Args:
@@ -95,7 +95,8 @@ def policy_evaluation(env, discount, policy, precision=1e-3, max_backups=1000):
         policy: The policy to evaluate.
         precision: The precision for convergence (default: 1e-3).
         max_backups: Maximum number of backups to perform to prevent infinite loops (default: 1000).
-        
+        verbose: If True, prints progress information.
+
     Returns:
         The value function for the given policy.
     """
@@ -106,16 +107,24 @@ def policy_evaluation(env, discount, policy, precision=1e-3, max_backups=1000):
     
     V = np.zeros(len(policy), dtype=np.float64)
 
-    while True:
+    i = 0
+    while i < max_backups:
         V_old = V.copy()
 
         for s in env.states():
             V[s] = backup(env, discount, V, s, policy[s])
 
-        if np.abs(V - V_old).max() <= precision or max_backups <= 0:
+        if np.abs(V - V_old).max() <= precision:
             break
 
-        max_backups -= 1
+        i += 1
+    
+    if verbose:
+        if i < max_backups:
+            print(f'\nConverged after {i} sweeps.')
+        else:       
+            print(f'\nReached maximum number of backups ({max_backups}) without convergence.')
+    
     return V
 
 
