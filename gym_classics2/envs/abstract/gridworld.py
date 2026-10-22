@@ -1,5 +1,3 @@
-from cProfile import label
-
 from gym_classics2.envs.abstract.base_env import BaseEnv
 from gymnasium.spaces import MultiDiscrete
 
