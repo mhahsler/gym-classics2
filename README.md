@@ -1,6 +1,6 @@
 # gym_classics2
 
-[![license](https://img.shields.io/badge/license-GPL%20v3.0-blue)](LICENSE)
+[![license](https://img.shields.io/badge/license-GPL%20v3.0-blue)](https://github.com/mhahsler/gym-classics2/blob/main/LICENSE)
 [![documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://mhahsler.github.io/gym-classics2/)
 
 `gym_classics2` provides classic finite Markov decision processes and readable
@@ -22,7 +22,13 @@ The package includes:
 
 ## Installation
 
-Python 3.10 or newer is required. To install the current development version:
+Python 3.10 or newer is required. Once published on PyPI, install the release with:
+
+```bash
+python -m pip install gym-classics2
+```
+
+To install the current development version:
 
 ```bash
 python -m pip install "gym-classics2 @ git+https://github.com/mhahsler/gym-classics2.git"
@@ -32,7 +38,7 @@ Pygame rendering is optional. Install the `render` extra to use `human` or
 `rgb_array` rendering modes:
 
 ```bash
-python -m pip install "gym-classics2[render] @ git+https://github.com/mhahsler/gym-classics2.git"
+python -m pip install "gym-classics2[render]"
 ```
 
 ## Quick start
@@ -136,6 +142,9 @@ To build the documentation locally:
 python -m pip install -e ".[docs]"
 mkdocs serve
 ```
+
+Maintainers: see the [release instructions](https://github.com/mhahsler/gym-classics2/blob/main/RELEASE.md)
+for distribution checks and PyPI publishing.
 
 ## References
 

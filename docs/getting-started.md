@@ -2,8 +2,14 @@
 
 ## Install
 
-`gym_classics2` requires Python 3.10 or newer. Install the current version from
-GitHub:
+`gym_classics2` requires Python 3.10 or newer. Once published on PyPI, install
+the release with:
+
+```bash
+python -m pip install gym-classics2
+```
+
+To install the current development version from GitHub:
 
 ```bash
 python -m pip install "gym-classics2 @ git+https://github.com/mhahsler/gym-classics2.git"
@@ -13,7 +19,7 @@ Pygame rendering is optional. Install the `render` extra to use `human` or
 `rgb_array` rendering modes:
 
 ```bash
-python -m pip install "gym-classics2[render] @ git+https://github.com/mhahsler/gym-classics2.git"
+python -m pip install "gym-classics2[render]"
 ```
 
 ## Run an environment
