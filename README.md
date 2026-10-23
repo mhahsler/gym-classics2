@@ -3,7 +3,7 @@
 [![PyPI
 package](https://img.shields.io/badge/pip%20install-gym--classics2-brightgreen)](https://pypi.org/project/gym-classics2/)
 [![version
-number](https://img.shields.io/pypi/v/gym--classics2?color=green&label=version)-classics2?color=green&label=version)](https://github.com/mhahsler/gym-classics2/releases)
+number](https://img.shields.io/pypi/v/gym--classics2?color=green&label=version)](https://github.com/mhahsler/gym-classics2/releases)
 [![documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://mhahsler.github.io/gym-classics2/)
 [![license](https://img.shields.io/badge/license-GPL%20v3.0-blue)](https://github.com/mhahsler/gym-classics2/blob/main/LICENSE)
 
