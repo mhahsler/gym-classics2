@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.0.4 - 2026-10-25
+
+### Changed
+
+- Accept policy arrays directly in semi-gradient TD(0) prediction for
+  multidiscrete gym-classics environments.
+- Accept sampled episodes with coordinate state labels in gridworld images.
+
 ## 1.0.3 - 2026-10-22
 
 ### Added

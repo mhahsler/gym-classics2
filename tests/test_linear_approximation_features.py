@@ -4,12 +4,32 @@ from types import SimpleNamespace
 
 import gymnasium as gym
 import numpy as np
+import pytest
 
 from gym_classics2.algorithms.linear_approximation import (
     q_hat,
     semi_gradient_Sarsa_0,
+    semi_gradient_TD0_estimation,
 )
+from gym_classics2.envs.abstract.gridworld import Gridworld
 from gym_classics2.envs.gym_classics2.linear_walks import Walk5
+
+
+@pytest.mark.parametrize("policy", [np.array([1, 1]), {(0, 0): 1, (1, 0): 1}])
+def test_semi_gradient_td0_accepts_array_and_coordinate_policies(policy):
+    env = Gridworld("SG", tabular=False)
+
+    def state_features(state, env):
+        return np.array([1.0])
+
+    try:
+        weights = semi_gradient_TD0_estimation(
+            env, state_features, policy, n=1, alpha=0.5, gamma=1,
+            max_episode_length=1,
+        )
+        np.testing.assert_allclose(weights, [0.5])
+    finally:
+        env.close()
 
 
 def test_q_hat_uses_the_supplied_state_features():

@@ -336,9 +336,9 @@ class Gridworld(BaseEnv):
                 display their state IDs and the color bar is hidden.
             policy: One action ID per state. Actions are drawn as arrows and
                 replace ``labels`` when provided.
-            episode: Sequence of transitions whose first two entries are the state
-                and action IDs. Actions taken in visited states are drawn as arrows
-                and replace ``policy``.
+            episode: Sequence of transitions whose first two entries are a state
+                (integer ID or coordinate label) and an action ID. Actions taken
+                in visited states are drawn as arrows and replace ``policy``.
             labels: One label per state. If ``True``, use values from ``V`` rounded
                 to two decimal places.
             title: Plot title.
@@ -364,7 +364,10 @@ class Gridworld(BaseEnv):
             # start with policy that hides all actions with an index past the last action.
             policy = np.full(len(self.states()), len(self.actions()))
             for step in episode:
-                policy[step[0]] = step[1]
+                state = step[0]
+                if not isinstance(state, (int, np.integer)):
+                    state = self.state2id(tuple(state))
+                policy[state] = step[1]
 
         if not policy is None:
             labels = [self.id2action(a, type = "arrow") for a in policy]

@@ -12,7 +12,7 @@ from tqdm import tqdm
 import gymnasium as gym
 
 from gym_classics2.utils import get_rng, random_argmax
-from gym_classics2.algorithms.policy import random_policy
+from gym_classics2.algorithms.policy import random_policy, make_multidiscrete_policy
 from gym_classics2.algorithms.schedules import Schedule, ConstantSchedule
 from gym_classics2.envs.abstract.base_env import BaseEnv as GymClassicsBaseEnv
 
@@ -151,7 +151,9 @@ def semi_gradient_TD0_estimation(
     Args:
         env: Episodic Gymnasium environment used to generate experience.
         state_features: Callable converting ``(state, env)`` to a feature vector.
-        policy: Deterministic policy indexed by state.
+        policy: Deterministic policy indexed by state. For multidiscrete
+            gym-classics environments, a policy array in state-ID order is
+            converted to a dictionary indexed by coordinate states.
         n: Number of training episodes.
         alpha: Step size or schedule.
         gamma: Discount factor in ``[0, 1]``.
@@ -167,6 +169,9 @@ def semi_gradient_TD0_estimation(
     
     if isinstance(env.observation_space, gym.spaces.Discrete):
         warnings.warn("The environment has a discrete state space. Consider using a tabular method instead of function approximation.")
+
+    if isinstance(env.observation_space, gym.spaces.MultiDiscrete):
+        policy = make_multidiscrete_policy(policy, env)
     
     if not isinstance(alpha, Schedule):
         alpha = ConstantSchedule(alpha)
