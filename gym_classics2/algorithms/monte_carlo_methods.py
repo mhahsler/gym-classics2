@@ -1,4 +1,4 @@
-"""This file implements tabular Monte Carlo methods for policy evaluation and control in gym-classics environments 
+"""This file implements tabular Monte Carlo methods for policy evaluation and control for environments 
 with discrete state spaces.
 """
 

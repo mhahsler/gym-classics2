@@ -1,7 +1,16 @@
 """Linear function approximation algorithms for policy evaluation and control.
 
-The algorithms do not require discrete state spaces. Callers provide a
-``state_features(state, env)`` function that converts states to state feature vectors.
+Implements linear v and q-value function approximation, prediction with semi-gradient TD(0), control with 
+semi-gradient Sarsa(0) and feature construction with Fourier basis functions. 
+
+The algorithms do not require discrete state spaces. Callers have to provide a
+``state_features(state, env)`` function that converts states to state feature vectors ``x(s)``.
+
+Example: For an environment where the state is a set of numbers, e.g., a x- and y-coordinate. The leading 1 is the intercept.
+    ```Python
+    def state_features(s, env):
+        return np.concatenate([np.array([1]), np.array(s)])
+    ```
 """
 
 import numpy as np
@@ -21,7 +30,7 @@ def state_action_features(s, a, env, state_features):
 
     The state feature vector is expected to have the form
     ``[1, x1, ..., xd]``, with a leading intercept. The returned vector keeps
-    one shared intercept and has a separate block of the remaining state
+    one s   hared intercept and has a separate block of the remaining state
     features for each action. Only the intercept and the weights for ``a`` are
     selected; all other elements are set to zero.
 
@@ -86,7 +95,7 @@ def q_hat(s, a, w, env, state_features):
 def epsilon_greedy_action_w(
     s, w, env, state_features, epsilon=0, rng=None
 ):
-    """Select an epsilon-greedy action from approximate action values.
+    """Select an epsilon-greedy action from an approximate action-values function.
 
     Args:
         s: Current state.
@@ -132,7 +141,7 @@ def MSVE(V, V_true, weight=None):
     return np.sum(weight * (V - V_true)**2)
 
 
-def semi_gradient_TD0_estimation(
+def semi_gradient_TD0(
     env,
     state_features,
     policy,
@@ -205,10 +214,10 @@ def semi_gradient_TD0_estimation(
     return w
 
 
-def semi_gradient_Sarsa_0(env, state_features, n, epsilon, alpha, gamma, w=None,
+def semi_gradient_Sarsa0(env, state_features, n, epsilon, alpha, gamma, w=None,
                           max_episode_length=1000, verbose=False,
                           history=False, rng=None):
-    """Run semi-gradient Sarsa(0) with function approximation.
+    """Run semi-gradient Sarsa(0) with function approximation for control.
 
     Implements the **semi-gradient Sarsa(0)** algorithm for estimating the optimal
     action-value function q_*(s, a) using a differentiable function approximator

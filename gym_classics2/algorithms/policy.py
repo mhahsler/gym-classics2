@@ -1,5 +1,13 @@
-"""This file implements different policy representations and functions for working with policies in gym-classics environments.
-It includes functions for creating random policies, encoding policies for display, and computing greedy policies based
+"""Create, convert, and select actions from tabular policies.
+
+A deterministic tabular policy is a vector of integer action IDs indexed by
+state ID. For gym-classics2 environments with MultiDiscrete observations,
+policies can instead be dictionaries mapping coordinate tuples to action IDs.
+
+Greedy policies can be derived from state values using model access or directly
+from action values. ``epsilon_greedy_action`` samples from action values rather
+than from a deterministic policy vector. Random choices accept a NumPy
+generator, an integer seed, or None through ``rng``.
 """
 
 import numpy as np
@@ -9,26 +17,21 @@ import gymnasium as gym
 from gym_classics2.utils import get_rng, random_argmax
 from gym_classics2.envs.abstract.base_env import BaseEnv as GymClassicsBaseEnv
 
-def make_multidiscrete_policy(policy, env):
-    """
-    Converts a tabular policy vector to a multi-discrete tabular policy stored in a dictionary that can be used for sample.
-    """
-    assert isinstance(env.observation_space, gym.spaces.MultiDiscrete), "Requires an environment with a multi-discrete state spaces."
-    
-    if isinstance(policy, dict):
-        return policy
-        
-    if isinstance(env, GymClassicsBaseEnv):
-        return dict(zip(env.id2state(list(env.states())), [policy[s] for s in env.states()]))
-    else:
-        raise ValueError("Unsupported environment type")
-
-
 def random_policy(env, rng=None):
-    """
-    Create a random policy for the given environment. 
-    The policy is represented as a numpy array where each entry corresponds to an action for a state.
-    ``rng`` may be a NumPy generator or an integer seed.
+    """Create a deterministic policy by sampling one action per state.
+
+    Actions are drawn uniformly and independently when the policy is created.
+    Looking up a state in the resulting policy always gives the same action.
+
+    Args:
+        env: Environment with a discrete action space. Observations must be
+            Discrete, or MultiDiscrete in a gym-classics2 environment.
+        rng: NumPy generator, integer seed, or None for sampling actions.
+
+    Returns:
+        NumPy array of action IDs indexed by state ID for Discrete observations,
+        or a dictionary mapping coordinate tuples to action IDs for
+        MultiDiscrete observations.
     """
     
     rng = get_rng(rng)
@@ -41,9 +44,16 @@ def random_policy(env, rng=None):
 
 # only for gym-classics environments!
 def encode_policy(policy, env, type = "text"):
-    """
-    Encode a policy for display. The policy is represented as a numpy array where each entry corresponds to an action for a state.
-    The function returns a list of action names corresponding to the actions in the policy.
+    """Convert a sequence of action IDs to labels for display.
+
+    Args:
+        policy: Deterministic policy vector containing integer action IDs.
+        env: gym-classics2 environment providing ``id2action``.
+        type: Label format passed to ``env.id2action``; defaults to ``"text"``.
+            Available formats depend on the environment.
+
+    Returns:
+        List of action labels in the same order as the input policy.
     """
     
     assert isinstance(env, GymClassicsBaseEnv)
@@ -53,6 +63,12 @@ def encode_policy(policy, env, type = "text"):
 
 # this is a copy from DP to prevent circular imports.
 def _backup(env, discount, V, s, a):
+    """Return the expected one-step target for state ``s`` and action ``a``.
+
+    Uses ``env.model(s, a)`` to sum ``p * (reward + discount * V[next_state])``
+    over outcomes, omitting the next-state value for terminal transitions.
+    ``V`` is indexed by state ID.
+    """
     V = np.array(V)
     
     next_states, rewards, terminals, probs = env.model(s, a)
@@ -60,16 +76,21 @@ def _backup(env, discount, V, s, a):
     return np.sum(probs * (rewards + discount * bootstraps))
 
 def greedy_policy(V, env, discount=1, rng=None):
-    """Calculate a greedy policy from a state-value function.
+    """Create a greedy policy by one-step look-ahead from state values.
+
+    For each state, select an action maximizing the expected reward plus the
+    discounted next-state value. Terminal transitions do not bootstrap.
+    Ties are broken uniformly at random when the policy is created.
 
     Args:
-        V: One-dimensional state-value array.
-        env: Environment with a discrete state space and model access.
+        V: One-dimensional state-value array indexed by state ID.
+        env: gym-classics2 environment with Discrete observation and action
+            spaces and access to the transition and reward model.
         discount: Discount factor in ``[0, 1]``.
-        rng: NumPy generator or integer seed for random tie-breaking.
+        rng: NumPy generator, integer seed, or None for random tie-breaking.
 
     Returns:
-        Integer action ID selected for each state.
+        NumPy array of integer action IDs indexed by state ID.
     """
     assert isinstance(env, GymClassicsBaseEnv), "greedy_policy requires a gym-classics environment with discrete state space."
     assert isinstance(env.action_space, gym.spaces.Discrete)
@@ -88,16 +109,19 @@ def greedy_policy(V, env, discount=1, rng=None):
     return policy
 
 def greedy_policy_Q(Q, env, discount=1, rng=None):
-    """Calculate a greedy policy from an action-value function.
+    """Create a greedy policy by maximizing action values in each state.
+
+    Ties are broken uniformly at random when the policy is created.
 
     Args:
         Q: Two-dimensional action-value array indexed by state and action.
         env: Environment with discrete observation and action spaces.
-        discount: Unused; retained for API compatibility with ``greedy_policy``.
-        rng: NumPy generator or integer seed for random tie-breaking.
+        discount: Must be in ``[0, 1]`` but does not affect action selection;
+            retained for API compatibility with ``greedy_policy``.
+        rng: NumPy generator, integer seed, or None for random tie-breaking.
 
     Returns:
-        Integer action ID selected for each state.
+        NumPy array of integer action IDs indexed by state ID.
     """
     
     assert isinstance(env.action_space, gym.spaces.Discrete)
@@ -109,12 +133,19 @@ def greedy_policy_Q(Q, env, discount=1, rng=None):
 def epsilon_greedy_action(policy, state=None, epsilon=0, rng=None):
     """Select an epsilon-greedy action from tabular action values.
 
+    With probability ``epsilon``, sample uniformly from all actions, including
+    greedy ones. Otherwise, maximize the action values and break ties
+    uniformly at random.
+
     Args:
-        policy: Action values for all actions, optionally indexed first by state.
+        policy: One-dimensional action-value vector, or a table indexed by
+            state and then action. Despite the name, this argument contains
+            action values, not the action IDs of a deterministic policy.
         state: Current state index. If omitted, ``policy`` is treated as the
             action-value vector for the current state.
-        epsilon: Probability of selecting a uniformly random action.
-        rng: NumPy generator or integer seed.
+        epsilon: Exploration probability in ``[0, 1]``.
+        rng: NumPy generator, integer seed, or None for action sampling
+            and tie-breaking.
 
     Returns:
         Selected integer action ID.
@@ -129,3 +160,33 @@ def epsilon_greedy_action(policy, state=None, epsilon=0, rng=None):
         return random_argmax(policy, rng=rng)
     else:
         return random_argmax(policy[state], rng=rng)
+
+def make_multidiscrete_policy(policy, env):
+    """Convert a policy indexed by state ID to a coordinate-keyed dictionary.
+
+    Args:
+        policy: Deterministic policy vector indexed by state ID, or an existing
+            dictionary mapping coordinate tuples to action IDs.
+        env: Environment with MultiDiscrete observations. Converting a vector
+            requires a gym-classics2 environment providing ``states`` and
+            ``id2state``.
+
+    Returns:
+        Dictionary mapping coordinate tuples to integer action IDs. An input
+        dictionary is returned unchanged, without copying or validating entries.
+
+    Raises:
+        AssertionError: If the observation space is not MultiDiscrete.
+        ValueError: If converting a vector for an unsupported environment type.
+    """
+    assert isinstance(env.observation_space, gym.spaces.MultiDiscrete), "Requires an environment with a multi-discrete state spaces."
+    
+    if isinstance(policy, dict):
+        return policy
+        
+    if isinstance(env, GymClassicsBaseEnv):
+        return dict(zip(env.id2state(list(env.states())), [policy[s] for s in env.states()]))
+    else:
+        raise ValueError("Unsupported environment type")
+
+

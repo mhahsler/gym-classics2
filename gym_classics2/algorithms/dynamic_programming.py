@@ -1,5 +1,5 @@
 """This file implements dynamic programming algorithms for solving Markov Decision Processes (MDPs) 
-in gym-classics environments with model access.
+in tabular gym-classics2 environments with model access.
 The algorithms include value iteration and policy iteration, which are fundamental methods in reinforcement learning for 
 computing optimal policies and value functions.
 """
@@ -11,8 +11,10 @@ from gym_classics2.utils import random_argmax
 from gym_classics2.algorithms.policy import random_policy
 from gym_classics2.envs.abstract.base_env import BaseEnv as GymClassicsBaseEnv
 
+
 def backup(env, discount, V, state, action):
-    """Computes the Bellman backup for a given state and action.
+    """Computes a Bellman backup for a given state, action, and value function. This is the building block
+    for the other algorithms.
     
     Args:
         env: A gym-classics environment with model access.
@@ -30,10 +32,53 @@ def backup(env, discount, V, state, action):
     bootstraps = (1.0 - terminals) * V[next_states]
     return np.sum(probs * (rewards + discount * bootstraps))
 
-### Value Iteration
+
+def policy_evaluation(env, discount, policy, precision=1e-3, max_backups=1000, verbose=False):
+    """Performs (modified) policy evaluates. It approximates the given policy's value function.
+    Using `max_backups` leads to modified policy evaluation. 
+    
+    Args:
+        env: A gym-classics environment with model access.
+        discount: The discount factor (0 <= discount <= 1).
+        policy: The policy to evaluate.
+        precision: The precision for convergence (default: 1e-3).
+        max_backups: Maximum number of backups to perform to prevent speed up computation and to 
+        prevent infinite loops (default: 1000). 
+        verbose: If True, prints progress information.
+
+    Returns:
+        The value function for the given policy.
+    """
+    
+    assert isinstance(env, GymClassicsBaseEnv), "Value iteration requires a gym-classics environment with model access to the environment." 
+    assert 0.0 <= discount <= 1.0
+    assert precision > 0.0
+    
+    V = np.zeros(len(policy), dtype=np.float64)
+
+    i = 0
+    while i < max_backups:
+        V_old = V.copy()
+
+        for s in env.states():
+            V[s] = backup(env, discount, V, s, policy[s])
+
+        if np.abs(V - V_old).max() <= precision:
+            break
+
+        i += 1
+    
+    if verbose:
+        if i < max_backups:
+            print(f'\nConverged after {i} sweeps.')
+        else:       
+            print(f'\nReached maximum number of backups ({max_backups}) without convergence.')
+    
+    return V
+
 
 def value_iteration(env, discount, precision=1e-3, history = False, verbose = False):
-    """Performs value iteration for the given environment.
+    """Performs value iteration to calculate the optimal value function.
 
     Args:
         env: A gym-classics environment with model access.
@@ -84,52 +129,12 @@ def value_iteration(env, discount, precision=1e-3, history = False, verbose = Fa
     return V
 
 
-### Policy Iteration
-
-def policy_evaluation(env, discount, policy, precision=1e-3, max_backups=1000, verbose=False):
-    """Evaluates a given policy to compute its value function.
-    
-    Args:
-        env: A gym-classics environment with model access.
-        discount: The discount factor (0 <= discount <= 1).
-        policy: The policy to evaluate.
-        precision: The precision for convergence (default: 1e-3).
-        max_backups: Maximum number of backups to perform to prevent infinite loops (default: 1000).
-        verbose: If True, prints progress information.
-
-    Returns:
-        The value function for the given policy.
-    """
-    
-    assert isinstance(env, GymClassicsBaseEnv), "Value iteration requires a gym-classics environment with model access to the environment." 
-    assert 0.0 <= discount <= 1.0
-    assert precision > 0.0
-    
-    V = np.zeros(len(policy), dtype=np.float64)
-
-    i = 0
-    while i < max_backups:
-        V_old = V.copy()
-
-        for s in env.states():
-            V[s] = backup(env, discount, V, s, policy[s])
-
-        if np.abs(V - V_old).max() <= precision:
-            break
-
-        i += 1
-    
-    if verbose:
-        if i < max_backups:
-            print(f'\nConverged after {i} sweeps.')
-        else:       
-            print(f'\nReached maximum number of backups ({max_backups}) without convergence.')
-    
-    return V
-
-
 def policy_improvement(policy, V_policy, env, discount, precision=1e-3):
-    """Improves the policy based on the given value function.
+    """Improves the policy based on the given value function. It does this by 
+    calculating a Q-value function for all states and actions using Bellman updates 
+    and then extracts a greedy policy.
+
+    Policy evaluation adn policy improvement are the steps of policy iteration.
     
     Args:
         policy: The current policy to improve.
@@ -158,7 +163,8 @@ def policy_improvement(policy, V_policy, env, discount, precision=1e-3):
     return policy, stable
 
 def policy_iteration(env, discount, precision=1e-3, max_backups=1000, history=False, verbose=False, rng=None):
-    """Performs policy iteration for the given environment.
+    """Performs policy iteration to find the optimal policy. It repeats modified policy evaluation followed by
+    policy improvement till it converges to the optimal policy.
 
     Args:
         env: A gym-classics environment with model access.

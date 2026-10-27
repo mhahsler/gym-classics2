@@ -8,8 +8,8 @@ import pytest
 
 from gym_classics2.algorithms.linear_approximation import (
     q_hat,
-    semi_gradient_Sarsa_0,
-    semi_gradient_TD0_estimation,
+    semi_gradient_Sarsa0,
+    semi_gradient_TD0,
 )
 from gym_classics2.envs.abstract.gridworld import Gridworld
 from gym_classics2.envs.gym_classics2.linear_walks import Walk5
@@ -23,7 +23,7 @@ def test_semi_gradient_td0_accepts_array_and_coordinate_policies(policy):
         return np.array([1.0])
 
     try:
-        weights = semi_gradient_TD0_estimation(
+        weights = semi_gradient_TD0(
             env, state_features, policy, n=1, alpha=0.5, gamma=1,
             max_episode_length=1,
         )
@@ -55,7 +55,7 @@ def test_semi_gradient_sarsa_passes_features_through_the_algorithm():
         feature_calls += 1
         return np.array([1, state])
 
-    weights = semi_gradient_Sarsa_0(
+    weights = semi_gradient_Sarsa0(
         env,
         state_features,
         n=2,

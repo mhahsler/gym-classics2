@@ -1,12 +1,13 @@
-"""This file implements policy gradient methods for learning parameterized policies.
-The main algorithm implemented is REINFORCE, which is a Monte Carlo policy gradient method that updates policy 
-parameters based on the returns observed in sampled episodes. The policy is represented using a softmax function 
-over linear state-action features, and the algorithm estimates the policy gradient using the log-likelihood of actions taken 
-in the episodes. This implementation allows for learning stochastic policies that can handle exploration and exploitation in 
-reinforcement learning tasks.
+"""Policy-gradient control with linear function approximation.
 
-Callers provide a ``state_features(state, env)`` function that converts states
-to feature vectors suitable for the environment being used.
+REINFORCE uses sampled returns; one-step actor-critic (AC) uses a learned
+state-value function to estimate the policy update. Both learn a stochastic
+softmax policy over linear action preferences for a discrete action space.
+
+Callers supply ``state_features(state, env)``, returning a fixed-length NumPy
+vector with a leading intercept, such as ``[1, x, y]``. Policy features are
+constructed by ``state_action_features``; AC also uses the state features
+directly for its value approximation.
 """
 
 from tqdm import tqdm
@@ -20,11 +21,35 @@ from gym_classics2.algorithms.schedules import ConstantSchedule
 from gym_classics2.utils import get_rng
 
 def h(s, a, theta, env, state_features):
-    """Return the linear action preference for state ``s`` and action ``a``."""
+    """Compute the linear action preference ``h(s, a) = theta^T x(s, a)``.
+
+    Args:
+        s: State to evaluate.
+        a: Integer action ID in ``range(env.action_space.n)``.
+        theta: Policy parameter vector matching ``state_action_features``.
+        env: Environment providing the discrete action space.
+        state_features: Callable returning state features with a leading
+            intercept for ``(s, env)``.
+
+    Returns:
+        Scalar preference used as the action's softmax logit.
+    """
     return np.dot(theta, state_action_features(s, a, env, state_features))
 
 def pi(s, theta, env, state_features):
-    """Return the softmax action-probability vector for a state."""
+    """Compute the softmax policy ``pi(a | s)`` over linear preferences.
+
+    Args:
+        s: State to evaluate.
+        theta: Policy parameter vector matching ``state_action_features``.
+        env: Environment providing the discrete action space.
+        state_features: Callable returning state features with a leading
+            intercept for ``(s, env)``.
+
+    Returns:
+        NumPy vector of length ``env.action_space.n``, indexed by action ID,
+        with probabilities proportional to ``exp(h(s, a))``.
+    """
     hs = np.array(
         [h(s, a, theta, env, state_features) for a in range(env.action_space.n)]
     )
@@ -37,14 +62,19 @@ def sample_episode_approx_policy(
     """Sample an episode from a parameterized policy.
 
     Args:
-        env: Episodic Gymnasium environment.
-        pi: Callable returning action probabilities for ``(state, theta, env)``.
+        env: Episodic Gymnasium environment with a discrete action space.
+        pi: Callable ``pi(state, theta, env, state_features)`` returning an
+            action-probability vector indexed by action ID.
         theta: Policy parameter vector.
+        state_features: Feature callable passed through to ``pi``.
         max_episode_length: Maximum number of transitions to sample.
-        rng: NumPy generator or integer seed used to sample actions.
+        rng: NumPy generator, integer seed, or None for action sampling.
+            Does not seed the environment.
 
     Returns:
-        List of ``(state, action, reward, next_state)`` transitions.
+        List of ``(state, action, reward, next_state)`` transitions, beginning
+        with a fresh environment reset. Stops on termination or after
+        ``max_episode_length`` transitions; truncation is currently ignored.
     """
 
     rng = get_rng(rng)
@@ -69,10 +99,12 @@ def choose_action_w(env, pi, theta, state, state_features, rng=None):
 
     Args:
         env: Environment providing the discrete action space.
-        pi: Callable returning action probabilities for ``(state, theta, env)``.
+        pi: Callable ``pi(state, theta, env, state_features)`` returning an
+            action-probability vector indexed by action ID.
         theta: Policy parameter vector.
         state: Current state.
-        rng: NumPy generator or integer seed used to sample the action.
+        state_features: Feature callable passed through to ``pi``.
+        rng: NumPy generator, integer seed, or None for action sampling.
 
     Returns:
         Selected integer action ID.
@@ -94,25 +126,38 @@ def REINFORCE(
     history=False,
     rng=None,
     ):
-    """Run REINFORCE with a linear softmax policy.
+    """Learn a linear softmax policy with episodic REINFORCE (no baseline).
+
+    Sample an episode, then update ``theta`` at each visited state using
+    ``alpha(episode) * gamma**t * G_t * grad_log_pi``, where ``G_t`` is the
+    discounted return from step ``t`` to the end of the sampled trajectory.
 
     Args:
-        env: Episodic environment used to generate experience.
-        state_features: Callable converting ``(state, env)`` to a feature vector.
-        n: Number of training episodes.
-        alpha: Policy step size or schedule.
+        env: Episodic Gymnasium environment with a discrete action space.
+        state_features: Callable returning a fixed-length NumPy feature vector
+            with a leading intercept for ``(state, env)``.
+        n: Positive number of training episodes.
+        alpha: Float step size or callable of the zero-based episode index.
         gamma: Discount factor in ``[0, 1]``.
-        theta: Initial policy parameter vector. If omitted, initialize it to
-            zeros.
-        max_episode_length: Maximum number of steps per episode.
-        verbose: Whether to print step-by-step diagnostics.
-        history: Whether to return parameters, returns, and episode lengths
-            collected during training.
-        rng: NumPy generator or integer seed used to sample actions.
+        theta: Initial NumPy policy parameter vector, updated in place. Its
+            length must match ``state_action_features``. Defaults to zeros,
+            giving a uniform initial policy.
+        max_episode_length: Positive maximum number of steps per episode.
+        verbose: Print step-by-step diagnostics instead of a progress bar.
+        history: Whether to return training history alongside the parameters.
+        rng: NumPy generator, integer seed, or None for action sampling.
+            Does not seed the environment.
 
     Returns:
-        Learned policy parameters. If ``history`` is true, returns
-        ``(theta, history)``.
+        Learned parameter vector ``theta``, or ``(theta, history)`` when
+        ``history=True``. The history dictionary contains ``thetas`` (copies
+        before training and after each episode), ``returns`` (discounted
+        episode returns), and ``ep_lens`` (episode lengths in steps).
+
+    Notes:
+        Sampling ignores environment truncation. If the step limit cuts an
+        episode short, returns use only the sampled rewards, without
+        bootstrapping a value for the final state.
     """
     
     assert gamma >= 0 and gamma <= 1, "gamma must be in [0  ,1]"
@@ -192,24 +237,42 @@ def AC(
     history=False,
     rng=None,
     ):
-    """Run one-step actor-critic with linear policy and value approximators.
+    """Learn a linear softmax policy with one-step actor-critic.
+
+    The critic approximates ``v(s) = w^T x(s)`` and learns from the TD error
+    ``delta = r + gamma * v(next_state) - v(state)``. The actor updates its
+    policy using ``alpha_policy(episode) * gamma**t * delta * grad_log_pi``.
+    Both parameter vectors start at zero, giving a uniform initial policy.
 
     Args:
-        env: Episodic environment used to generate experience.
-        state_features: Callable converting ``(state, env)`` to a feature vector.
-        n: Number of training episodes.
-        alpha_policy: Step size or schedule for policy updates.
-        alpha_value: Step size or schedule for value-function updates.
+        env: Episodic Gymnasium environment with a discrete action space.
+        state_features: Callable returning a fixed-length NumPy feature vector
+            with a leading intercept for ``(state, env)``. Used by the critic
+            directly and by the actor through ``state_action_features``.
+        n: Positive number of training episodes.
+        alpha_policy: Float policy step size or callable of the zero-based
+            episode index.
+        alpha_value: Float value-function step size or callable of the
+            zero-based episode index.
         gamma: Discount factor in ``[0, 1]``.
-        max_episode_length: Maximum number of steps per episode.
-        verbose: Whether to print step-by-step diagnostics.
-        history: Whether to return policy parameters, returns, and episode lengths
-            collected during training.
-        rng: NumPy generator or integer seed used to sample actions.
+        max_episode_length: Positive maximum number of steps per episode.
+        verbose: Print episode numbers instead of a progress bar.
+        history: Whether to return training history alongside the parameters.
+        rng: NumPy generator, integer seed, or None for action sampling.
+            Does not seed the environment.
 
     Returns:
-        Tuple ``(theta, w)`` containing the learned policy and value parameters.
-        If ``history`` is true, returns ``(theta, w, history)``.
+        Tuple ``(theta, w)`` containing the learned policy and value parameter
+        vectors, or ``(theta, w, history)`` when ``history=True``. The history
+        dictionary contains ``thetas`` (copies before training and after each
+        episode), ``returns`` (discounted episode returns), and ``ep_lens``
+        (episode lengths in steps).
+
+    Notes:
+        This implementation ignores environment truncation and bootstraps
+        from the next state's value even on a terminal transition. For an
+        episodic task, terminal-state features should therefore yield a
+        value of zero.
     """
     
     assert gamma >= 0 and gamma <= 1, "gamma must be in [0  ,1]"
