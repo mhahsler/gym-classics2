@@ -1,5 +1,11 @@
 # Environment API
 
+::: gym_classics2.envs
+    options:
+      members: false
+      show_root_heading: false
+      show_source: false
+
 ## Base environment
 
 ::: gym_classics2.envs.abstract.base_env.BaseEnv

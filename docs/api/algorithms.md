@@ -1,5 +1,11 @@
 # Algorithm API
 
+::: gym_classics2.algorithms
+    options:
+      members: false
+      show_root_heading: false
+      show_source: false
+
 ## Dynamic programming
 
 ::: gym_classics2.algorithms.dynamic_programming
