@@ -2,7 +2,7 @@
 
 ## Install
 
-`gym_classics2` requires Python 3.10 or newer. Once published on PyPI, install
+`gym_classics2` requires Python 3.10 or newer. A stable release version is available on PyPI, install
 the release with:
 
 ```bash
@@ -20,6 +20,12 @@ Pygame rendering is optional. Install the `render` extra to use `human` or
 
 ```bash
 python -m pip install "gym-classics2[render]"
+```
+
+or
+
+```bash
+python -m pip install "gym-classics2[render] @ git+https://github.com/mhahsler/gym-classics2.git"
 ```
 
 ## Run an environment
@@ -50,17 +56,18 @@ env.close()
 ```
 
 Gymnasium returns both `terminated` (the task reached a terminal condition) and
-`truncated` (an external time or step limit was reached). Treat the episode as
-finished when either is true.
+`truncated` (an external time or step limit in the environment was reached defined). 
+`gym-classics2` environments do not use `truncated`, but you should treat the episode as finished when 
+either is true.
 
 ## Choose a state representation
 
-Gridworld constructors accept `tabular=True` by default:
+Gridworld constructors in this package accept `tabular=True` by default:
 
 - `tabular=True` represents observations as consecutive integer IDs and is
   required by the tabular algorithms included in this package.
-- `tabular=False` represents grid observations as `(x, y)` coordinates and is
-  useful for visualization and function approximation.
+- `tabular=False` represents grid observations as `(x, y)` coordinates 
+(a MultiDiscrete observation space in Gymnasium). This is useful for visualization and function approximation.
 
 The unwrapped environment converts between the two forms:
 
