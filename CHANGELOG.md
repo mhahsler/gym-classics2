@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.4 - 2026-10-27
+
 ### Changed
 
 - Automatically register environments with Gymnasium on import. Explicit
@@ -11,11 +13,10 @@
   `gym_classics2.algorithms.linear_approximation`.
 - Renamed `semi_gradient_Sarsa_0` to `semi_gradient_Sarsa0` in
   `gym_classics2.algorithms.linear_approximation`.
-
-## 1.0.4 - 2026-10-25
-
-### Changed
-
+- Remove explicit registration calls from example notebooks and documentation;
+  explain that importing the package registers its environments.
+- Open the example notebook links in Google Colab.
+- Document the abstract and concrete environments and available algorithm families.
 - Accept policy arrays directly in semi-gradient TD(0) prediction for
   multidiscrete gym-classics environments.
 - Accept sampled episodes with coordinate state labels in gridworld images.
