@@ -1,10 +1,13 @@
 # Classic reinforcement learning, made inspectable
 
-`gym_classics2` is a teaching package written in Python covering finite Markov decision
-processes (MDPs), textbook reinforcement-learning algorithms, and visualization tools.
-The package focuses on gridworld examples which are implemented as environments using the 
-standard [Gymnasium API](https://gymnasium.farama.org/index.html) 
-and also provide full model access for planning algorithms.
+`gym_classics2` is a teaching package written by [Michael Hahsler](https://michael.hahsler.net/) in Python
+covering finite Markov decision processes (MDPs), textbook reinforcement-learning algorithms,
+and visualization tools.
+The package is inspired by Brett Daley's gym-classics package and 
+focuses on gridworld examples implemented as environments using the 
+standard [Gymnasium API](https://gymnasium.farama.org/index.html). 
+In addition to Gymnasium's sample access, `gym_classics2` environment also provide full model access 
+for planning algorithms.
 
 ## Where to begin
 
@@ -16,9 +19,13 @@ and also provide full model access for planning algorithms.
   requirements and outputs.
 - Consult the [API reference](api/registration.md) for exact signatures.
 
-## Design goals
+## Design goals and teaching material
 
-The implementations favor simple code, correspondence with Sutton and Barto's pseudocode
-and inspectable intermediate results over framework abstractions. They are
-intended for experiments, demonstrations, and coursework rather than
+The package favors simple code, and inspectable intermediate results over framework abstractions. 
+The implementations are intended for experiments, demonstrations, and coursework rather than
 large-scale reinforcement-learning workloads.
+
+The code maintains a close correspondence with the pseudocode in Sutton and Barto's 
+textbook _Reinforcement Learning: An Introduction._ Teaching material for an RL course 
+with `gym_classics2` (slides, examples, exercises) is available at
+[Reinforcement Learning: Lecture Material, Simple Python Code Examples and Assignments.](https://michael.hahsler.net/Introduction_to_Reinforcement_Learning/)
