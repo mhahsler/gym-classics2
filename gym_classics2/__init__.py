@@ -1,6 +1,3 @@
-import warnings
-
-
 _registry = (
     {
         'id': '5Walk-v0',
@@ -59,21 +56,18 @@ _registry = (
 )
 
 
-_backend = None
+_registered_backends = set()
+
 
 def register(backend='gymnasium'):
     """Register all bundled environments with Gymnasium or legacy Gym.
 
-    Call this once before passing a ``gym_classics2`` environment ID to
-    :func:`gymnasium.make`.
+    Importing ``gym_classics2`` automatically registers with Gymnasium.
+    Explicit calls remain supported; repeated calls for a backend do nothing.
 
     Args:
         backend: Registry to use. ``"gymnasium"`` is the default and recommended
             value; ``"gym"`` supports legacy installations.
-
-    Warns:
-        UserWarning: If registration was already performed in this process. Later
-            calls are ignored.
 
     Raises:
         AssertionError: If *backend* is neither ``"gymnasium"`` nor ``"gym"``.
@@ -81,17 +75,11 @@ def register(backend='gymnasium'):
     Example:
         >>> import gymnasium as gym
         >>> import gym_classics2
-        >>> gym_classics2.register()
         >>> env = gym.make("ClassicGridworld-v1")
     """
-    global _backend
-    if _backend is not None:
-        warnings.warn("gym-classics environments were already registered for {}; "
-                      "additional calls to `register()` are ignored.".format(_backend))
-        return
-
     assert backend in {'gym', 'gymnasium'}
-    _backend = backend
+    if backend in _registered_backends:
+        return
 
     if backend == 'gym':
         import gym
@@ -102,3 +90,8 @@ def register(backend='gymnasium'):
 
     for kwargs in _registry:
         register(**kwargs)
+
+    _registered_backends.add(backend)
+
+
+register()

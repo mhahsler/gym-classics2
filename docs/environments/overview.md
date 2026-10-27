@@ -1,6 +1,7 @@
 # Environments
 
-Call `gym_classics2.register()` before using these IDs with `gymnasium.make`.
+Import `gym_classics2` before using these IDs with `gymnasium.make`;
+registration happens automatically.
 All registered environments have discrete action spaces and support the model
 interface described in [Model access](model-access.md).
 

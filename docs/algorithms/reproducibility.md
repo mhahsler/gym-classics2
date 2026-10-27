@@ -21,8 +21,6 @@ import gym_classics2
 
 from gym_classics2.algorithms.temporal_difference_learning import Q_learning
 
-gym_classics2.register()
-
 seed = 42
 rng = np.random.default_rng(seed)
 

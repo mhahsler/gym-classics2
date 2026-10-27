@@ -23,4 +23,4 @@ environments or wrappers may not permit that operation; for those environments,
 choose an on-policy or temporal-difference control method instead.
 
 The complete notebook is
-[`examples/frozen_lake_MC.ipynb`](https://github.com/mhahsler/gym-classics2/blob/main/examples/frozen_lake_MC.ipynb).
+[`examples/frozen_lake_MC.ipynb`](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/frozen_lake_MC.ipynb).

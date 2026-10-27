@@ -8,12 +8,6 @@ import gym_classics2
 from gym_classics2.algorithms.dynamic_programming import value_iteration
 
 
-@pytest.fixture(scope="module", autouse=True)
-def registered_environments():
-    """Register once because the package intentionally ignores later calls."""
-    gym_classics2.register()
-
-
 def test_readme_quick_start():
     env = gym.make("ClassicGridworld-v1", tabular=True)
     state, info = env.reset(seed=42)

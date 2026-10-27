@@ -48,14 +48,13 @@ python -m pip install "gym-classics2[render]"
 
 ## Quick start
 
-Register the environments, create one with Gymnasium, and use the standard
-`reset`/`step` Gymnasium interface:
+Importing `gym_classics2` automatically registers its environments with
+Gymnasium. Create one and use the standard `reset`/`step` interface:
 
 ```python
 import gymnasium as gym
 import numpy as np
 import gym_classics2
-gym_classics2.register()
 
 seed = 42
 rng = np.random.default_rng(seed)

@@ -11,7 +11,6 @@ the environment first:
 import gymnasium as gym
 import gym_classics2
 
-gym_classics2.register()
 env = gym.make("ClassicGridworld-v1", tabular=True).unwrapped
 ```
 

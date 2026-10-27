@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Changed
+
+- Automatically register environments with Gymnasium on import. Explicit
+  `register()` calls remain supported and repeated calls are silent. Allow
+  legacy Gym registration in addition to Gymnasium registration.
+- Renamed `semi_gradient_TD0_estimation` to `semi_gradient_TD0` in
+  `gym_classics2.algorithms.linear_approximation`.
+- Renamed `semi_gradient_Sarsa_0` to `semi_gradient_Sarsa0` in
+  `gym_classics2.algorithms.linear_approximation`.
+
 ## 1.0.4 - 2026-10-25
 
 ### Changed

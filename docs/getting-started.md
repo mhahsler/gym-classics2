@@ -30,15 +30,13 @@ python -m pip install "gym-classics2[render] @ git+https://github.com/mhahsler/g
 
 ## Run an environment
 
-Registration connects the package's environment IDs to Gymnasium. It only
-needs to happen once in a Python process.
+Importing `gym_classics2` automatically registers its environment IDs with
+Gymnasium.
 
 ```python
 import gymnasium as gym
 import numpy as np
 import gym_classics2
-
-gym_classics2.register()
 
 seed = 42
 rng = np.random.default_rng(seed)
