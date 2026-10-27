@@ -34,16 +34,22 @@ def backup(env, discount, V, state, action):
 
 
 def policy_evaluation(env, discount, policy, precision=1e-3, max_backups=1000, verbose=False):
-    """Performs (modified) policy evaluates. It approximates the given policy's value function.
-    Using `max_backups` leads to modified policy evaluation. 
+    """Performs (modified) policy evaluation to approximate the given policy's value function.
+    Regular policy evaluation does not limit the number of backups and converges to the true value funciton. 
+    Modified policy evaluation limits the number of backups and produces an estimate of the true value function. 
+    This has several advantages: It is faster and it
+    prevents infinite loops for undiscounted problems where the evaluated policy does not reach a terminal state. 
     
+    Policy iteration using modified policy evaluation still converges. Note: Value iteration is a special case of 
+    policy iteration where policy evaluation is limited to a single backup.
+
     Args:
         env: A gym-classics environment with model access.
         discount: The discount factor (0 <= discount <= 1).
         policy: The policy to evaluate.
         precision: The precision for convergence (default: 1e-3).
-        max_backups: Maximum number of backups to perform to prevent speed up computation and to 
-        prevent infinite loops (default: 1000). 
+        max_backups: Maximum number of sweeps over all states (default: 1000).
+            Limits computation and prevents infinite loops for undiscounted problems.
         verbose: If True, prints progress information.
 
     Returns:
@@ -166,11 +172,17 @@ def policy_iteration(env, discount, precision=1e-3, max_backups=1000, history=Fa
     """Performs policy iteration to find the optimal policy. It repeats modified policy evaluation followed by
     policy improvement till it converges to the optimal policy.
 
+    Using modified policy evaluation has several advantages: It is faster and it
+    prevents infinite loops for undiscounted problems where the evaluated policy does not reach a terminal state.
+    Policy iteration using modified policy evaluation still converges. 
+    Note: Value iteration is a special case of policy iteration where policy evaluation is limited to a 
+    single backup.  
+
     Args:
         env: A gym-classics environment with model access.
         discount: The discount factor (0 <= discount <= 1).
         precision: The precision for convergence (default: 1e-3).
-        max_backups: Maximum number of iterations used in policy evaluation. Note: this prevents an infinite loop for policies that do not reach a terminal state.
+        max_backups: Maximum number of iterations used in modified policy evaluation. 
         history: If True, returns lists of intermediate policies and value functions.
         verbose: If True, prints progress information.
         rng: NumPy generator or integer seed used to initialize the policy.
