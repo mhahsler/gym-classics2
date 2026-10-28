@@ -9,12 +9,6 @@ the release with:
 python -m pip install gym-classics2
 ```
 
-To install the current development version from GitHub:
-
-```bash
-python -m pip install "gym-classics2 @ git+https://github.com/mhahsler/gym-classics2.git"
-```
-
 Pygame rendering is optional. Install the `render` extra to use `human` or
 `rgb_array` rendering modes:
 
@@ -22,10 +16,11 @@ Pygame rendering is optional. Install the `render` extra to use `human` or
 python -m pip install "gym-classics2[render]"
 ```
 
-or
+
+To install the current development version from GitHub:
 
 ```bash
-python -m pip install "gym-classics2[render] @ git+https://github.com/mhahsler/gym-classics2.git"
+python -m pip install "gym-classics2 @ git+https://github.com/mhahsler/gym-classics2.git"
 ```
 
 ## Run an environment

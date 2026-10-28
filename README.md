@@ -27,16 +27,10 @@ The package includes:
 
 ## Installation
 
-Python 3.10 or newer is required. Once published on PyPI, install the release with:
+Python 3.10 or newer is required. The release version of the package can be installed from PyPI via:
 
 ```bash
 python -m pip install gym-classics2
-```
-
-To install the current development version:
-
-```bash
-python -m pip install "gym-classics2 @ git+https://github.com/mhahsler/gym-classics2.git"
 ```
 
 Pygame rendering is optional. Install the `render` extra to use `human` or
@@ -44,6 +38,12 @@ Pygame rendering is optional. Install the `render` extra to use `human` or
 
 ```bash
 python -m pip install "gym-classics2[render]"
+```
+
+To install the current development version:
+
+```bash
+python -m pip install "gym-classics2 @ git+https://github.com/mhahsler/gym-classics2.git"
 ```
 
 ## Quick start
@@ -139,16 +139,6 @@ for input requirements and return values.
 - [4×3 Gridworld: value and policy iteration](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/4x3_grid_world.ipynb)
 - [Frozen Lake: Monte Carlo methods](https://colab.research.google.com/github/mhahsler/gym-classics2/blob/main/examples/frozen_lake_MC.ipynb)
 - [Course materials](https://mhahsler.github.io/Introduction_to_Reinforcement_Learning/)
-
-To build the documentation locally:
-
-```bash
-python -m pip install -e ".[docs]"
-mkdocs serve
-```
-
-Maintainers: see the [release instructions](https://github.com/mhahsler/gym-classics2/blob/main/RELEASE.md)
-for distribution checks and PyPI publishing.
 
 ## References
 
