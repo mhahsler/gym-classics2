@@ -285,7 +285,7 @@ class Gridworld(BaseEnv):
         """
         
         if value is None:
-            value = list(self.states())
+            value = list(range(len(self.states())))
         
         value = np.array(value)
       
@@ -357,7 +357,7 @@ class Gridworld(BaseEnv):
             m = np.zeros(self.dims).transpose()
             # missing positions have -1
             m[self.to_matrix(labels) == -1] = np.nan
-            labels = self.states()
+            labels = range(len(self.states()))
             colorbar = False
 
         if not episode is None:

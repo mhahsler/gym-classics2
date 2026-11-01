@@ -39,6 +39,9 @@ later calls continue to represent the environment correctly.
 When `tabular=True`, pass an integer state ID to `model`. When `tabular=False`,
 pass a raw state such as `(0, 0)`. Actions are integer IDs in both modes.
 
+`env.states()` returns a range of integer IDs in tabular mode and a list of raw
+states otherwise. Both use the same state-ID order.
+
 ## Examples
 
 ### Get Transitions for a Stochastic Action

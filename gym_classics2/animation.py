@@ -52,7 +52,7 @@ def gridworld_animate(env, Vs, policies = None, interval = 1000, repeat=False, c
     title = ax.set_title("")
     labels = []
     if not policies is None:
-        for s in env.states():
+        for s in range(len(env.states())):
             (i,j) = env.id2state(s)
             labels.append(ax.text(i, j, '', ha='center', va='center', color='black', fontsize=10))
     
@@ -71,7 +71,7 @@ def gridworld_animate(env, Vs, policies = None, interval = 1000, repeat=False, c
         return im, title, *labels,
     
     if not policies is None:
-        for s in env.states():
+        for s in range(len(env.states())):
             (i,j) = env.id2state(s)
             labels.append(ax.text(i, j, '', ha='center', va='center', color='black', fontsize=10))
 

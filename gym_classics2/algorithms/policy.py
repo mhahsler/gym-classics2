@@ -72,6 +72,8 @@ def _backup(env, discount, V, s, a):
     V = np.array(V)
     
     next_states, rewards, terminals, probs = env.model(s, a)
+    if not env.tabular:
+        next_states = env.state2id(next_states)
     bootstraps = (1.0 - terminals) * V[next_states]
     return np.sum(probs * (rewards + discount * bootstraps))
 
@@ -84,17 +86,18 @@ def greedy_policy(V, env, discount=1, rng=None):
 
     Args:
         V: One-dimensional state-value array indexed by state ID.
-        env: gym-classics2 environment with Discrete observation and action
-            spaces and access to the transition and reward model.
+        env: gym-classics2 environment with a discrete action space and model
+            access. Both ``tabular=True`` and ``tabular=False`` are supported.
         discount: Discount factor in ``[0, 1]``.
         rng: NumPy generator, integer seed, or None for random tie-breaking.
 
     Returns:
-        NumPy array of integer action IDs indexed by state ID.
+        NumPy array of integer action IDs indexed by state ID in either mode.
+        For a raw state ``s``, look up ``policy[env.state2id(s)]`` or convert
+        the array with ``make_multidiscrete_policy``.
     """
-    assert isinstance(env, GymClassicsBaseEnv), "greedy_policy requires a gym-classics environment with discrete state space."
+    assert isinstance(env, GymClassicsBaseEnv), "greedy_policy requires a gym-classics environment."
     assert isinstance(env.action_space, gym.spaces.Discrete)
-    assert isinstance(env.observation_space, gym.spaces.Discrete)
     assert 0.0 <= discount <= 1.0
     
     policy = np.zeros(len(env.states()), dtype=np.int64)
@@ -102,9 +105,9 @@ def greedy_policy(V, env, discount=1, rng=None):
 
     env = env.unwrapped
     
-    for s in env.states():
+    for state_id, s in enumerate(env.states()):
         Q_values = [_backup(env, discount, V, s, a) for a in range(env.action_space.n)]
-        policy[s] = random_argmax(Q_values, rng=rng)
+        policy[state_id] = random_argmax(Q_values, rng=rng)
 
     return policy
 
@@ -185,7 +188,7 @@ def make_multidiscrete_policy(policy, env):
         return policy
         
     if isinstance(env, GymClassicsBaseEnv):
-        return dict(zip(env.id2state(list(env.states())), [policy[s] for s in env.states()]))
+        return {env.id2state(i): policy[i] for i in range(len(env.states()))}
     else:
         raise ValueError("Unsupported environment type")
 

@@ -138,8 +138,14 @@ class BaseEnv(Env, metaclass=ABCMeta):
 
     ## Tabular access
     def states(self):
-        """Returns a generator over all possible environment states."""
-        return range(len(self._encoder))
+        """Return all reachable states in state-ID order.
+
+        Returns a range of integer IDs when ``tabular=True``, otherwise a list
+        of raw states.
+        """
+        if self.tabular:
+            return range(len(self._encoder))
+        return list(self._decoder)
     
     def state2id(self, state):
         """Converts a raw state into a unique integer."""
