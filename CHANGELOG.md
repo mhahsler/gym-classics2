@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+- Add `EmptyMazeGridworld`, registered as `EmptyMaze-v0`: a deterministic open
+  grid with start and goal in opposite corners and configurable dimensions
+  defaulting to `dims=(4, 4)`.
+
 ### Changed
 
 - Return a list of raw states from `env.states()` when `tabular=False`, in

@@ -17,7 +17,7 @@ import gymnasium as gym
 assert 'ClassicGridworld-v1' not in gym.registry
 import gym_classics2
 for env_id in (
-    '5Walk-v0', '19Walk-v0', 'ClassicGridworld-v1', 'LMaze-v0',
+    '5Walk-v0', '19Walk-v0', 'ClassicGridworld-v1', 'LMaze-v0', 'EmptyMaze-v0',
     'CliffWalk-v1', 'DynaMaze-v0', 'FourRooms-v0',
     'SparseGridworld-v0', 'WindyGridworld-v0',
 ):

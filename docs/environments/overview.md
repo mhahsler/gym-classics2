@@ -11,6 +11,7 @@ interface described in [Model access](model-access.md).
 | `19Walk-v0` | Longer random-walk task with rewards −1 and +1 | Deterministic | Example 7.1 |
 | `ClassicGridworld-v1` | 4×3 grid with a wall, goal, and trap | 80–10–10 action noise | Exercise 3.14-style gridworld |
 | `LMaze-v0` | Maze with an L-shaped barrier | Deterministic | - |
+| `EmptyMaze-v0` | Open grid with opposite-corner start and goal (default 4×4) | Deterministic | - |
 | `CliffWalk-v1` | 12×4 cliff-walking control task | Deterministic | Example 6.6 |
 | `DynaMaze-v0` | 9×6 maze used to demonstrate planning | Deterministic | Example 8.1 |
 | `FourRooms-v0` | 11×11 environment divided by doorways | Deterministic | - |
@@ -31,6 +32,7 @@ documents a different default:
 
 `ClassicGridworld-v1` additionally accepts `trap_reward`.
 `CliffWalk-v1` additionally accepts `cliff_reward`.
+`EmptyMaze-v0` additionally accepts `dims=(width, height)`, defaulting to `(4, 4)`.
 
 ## Coordinates and actions
 

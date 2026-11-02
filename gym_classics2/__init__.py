@@ -16,6 +16,10 @@ _registry = (
         'entry_point': 'gym_classics2.envs.gym_classics2.L_maze:LMazeGridworld'
     },
     {
+        'id': 'EmptyMaze-v0',
+        'entry_point': 'gym_classics2.envs.gym_classics2.empty_maze:EmptyMazeGridworld'
+    },
+    {
         'id': 'CliffWalk-v1',
         'entry_point': 'gym_classics2.envs.gym_classics2.cliff_walk_v1:CliffWalk'
     },

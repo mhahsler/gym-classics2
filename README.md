@@ -111,6 +111,7 @@ for details.
 | `19Walk-v0` | Nineteen-state random walk | Deterministic | Tabular |
 | `ClassicGridworld-v1` | 4×3 gridworld | Stochastic (80–10–10) | Tabular |
 | `LMaze-v0` | L-shaped maze | Deterministic | Tabular |
+| `EmptyMaze-v0` | Open grid with opposite-corner start and goal (default 4×4) | Deterministic | Tabular |
 | `CliffWalk-v1` | Cliff walking | Deterministic | Tabular |
 | `DynaMaze-v0` | Dyna maze | Deterministic | Tabular |
 | `FourRooms-v0` | Four rooms | Deterministic | Tabular |

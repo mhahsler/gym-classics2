@@ -54,6 +54,8 @@
 
 ::: gym_classics2.envs.gym_classics2.L_maze.LMazeGridworld
 
+::: gym_classics2.envs.gym_classics2.empty_maze.EmptyMazeGridworld
+
 ::: gym_classics2.envs.gym_classics2.sparse_gridworld.SparseGridworld
 
 ::: gym_classics2.envs.gym_classics2.windy_gridworld.WindyGridworld
