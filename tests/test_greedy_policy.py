@@ -4,7 +4,7 @@ import gymnasium as gym
 import numpy as np
 import pytest
 
-from gym_classics2.algorithms.policy import _backup, greedy_policy
+from gym_classics2.algorithms.policy import _backup, greedy_policy, greedy_policy_Q
 from gym_classics2.envs.abstract.gridworld import Gridworld
 
 
@@ -42,3 +42,20 @@ def test_greedy_policy_matches_between_modes_for_stochastic_model(discount):
     finally:
         tabular.close()
         raw.close()
+
+
+@pytest.mark.parametrize("tabular", [True, False])
+def test_greedy_policy_q_returns_state_indexed_actions_in_both_modes(tabular):
+    env = Gridworld("S G", tabular=tabular)
+    try:
+        values = np.array([[0, 3, 1, 2], [4, 0, 1, 2], [5, 0, 5, 0]])
+        policy = greedy_policy_Q(values, env, rng=42)
+
+        assert policy.shape == (3,)
+        assert np.issubdtype(policy.dtype, np.integer)
+        np.testing.assert_array_equal(policy[:2], [1, 0])
+        assert policy[env.state2id((2, 0))] in (0, 2)
+        np.testing.assert_array_equal(policy, greedy_policy_Q(values, env, rng=42))
+        assert env.tabular == tabular
+    finally:
+        env.close()

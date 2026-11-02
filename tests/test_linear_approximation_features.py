@@ -67,3 +67,28 @@ def test_semi_gradient_sarsa_passes_features_through_the_algorithm():
 
     assert feature_calls > 0
     assert weights.shape == (5,)
+
+
+@pytest.mark.parametrize(
+    "reward, feature, message",
+    [(1e200, 1e200, "overflow"), (np.inf, 0.0, "invalid")],
+)
+def test_semi_gradient_sarsa_raises_at_invalid_weight_update(reward, feature, message):
+    env = SimpleNamespace(
+        observation_space=gym.spaces.MultiDiscrete([1]),
+        action_space=gym.spaces.Discrete(1),
+        reset=lambda: ((0,), {}),
+        step=lambda action: ((0,), reward, True, False, {}),
+    )
+
+    def state_features(state, env):
+        return np.array([feature])
+
+    with np.errstate(over="ignore", invalid="ignore"):
+        original_settings = np.geterr()
+        with pytest.raises(FloatingPointError, match=message):
+            semi_gradient_Sarsa0(
+                env, state_features, n=1, epsilon=0, alpha=0.1, gamma=0.9,
+                rng=42,
+            )
+        assert np.geterr() == original_settings

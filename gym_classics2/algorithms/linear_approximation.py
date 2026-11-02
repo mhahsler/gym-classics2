@@ -11,6 +11,9 @@ Example: For an environment where the state is a set of numbers, e.g., a x- and 
     def state_features(s, env):
         return np.concatenate([np.array([1]), np.array(s)])
     ```
+
+Approximation calculations raise ``FloatingPointError`` on NumPy overflow or
+invalid operations. Check the step size and feature values if this occurs.
 """
 
 import numpy as np
@@ -25,6 +28,7 @@ from gym_classics2.algorithms.policy import random_policy, make_multidiscrete_po
 from gym_classics2.algorithms.schedules import Schedule, ConstantSchedule
 from gym_classics2.envs.abstract.base_env import BaseEnv as GymClassicsBaseEnv
 
+@np.errstate(over="raise", invalid="raise")
 def state_action_features(s, a, env, state_features):
     """Construct the state-action feature vector ``x(s, a)``.
 
@@ -52,6 +56,7 @@ def state_action_features(s, a, env, state_features):
     x[active_weights(a, len(s)-1)] = s
     return x
 
+@np.errstate(over="raise", invalid="raise")
 def v_hat(s, w, env, state_features):
     """Compute the linear state-value approximation ``v_hat(s, w)``.
 
@@ -71,6 +76,7 @@ def v_hat(s, w, env, state_features):
     """
     return np.dot(w, state_features(s, env))
 
+@np.errstate(over="raise", invalid="raise")
 def q_hat(s, a, w, env, state_features):
     """Compute the linear action-value approximation ``q_hat(s, a, w)``.
 
@@ -92,6 +98,7 @@ def q_hat(s, a, w, env, state_features):
     x = state_action_features(s, a, env, state_features)
     return np.dot(w, x)
 
+@np.errstate(over="raise", invalid="raise")
 def epsilon_greedy_action_w(
     s, w, env, state_features, epsilon=0, rng=None
 ):
@@ -123,6 +130,7 @@ def epsilon_greedy_action_w(
     )
 
 
+@np.errstate(over="raise", invalid="raise")
 def MSVE(V, V_true, weight=None):
     """Calculate the weighted mean squared value error.
 
@@ -140,7 +148,7 @@ def MSVE(V, V_true, weight=None):
     
     return np.sum(weight * (V - V_true)**2)
 
-
+@np.errstate(over="raise", invalid="raise")
 def semi_gradient_TD0(
     env,
     state_features,
@@ -214,6 +222,7 @@ def semi_gradient_TD0(
     return w
 
 
+@np.errstate(over="raise", invalid="raise")
 def semi_gradient_Sarsa0(env, state_features, n, epsilon, alpha, gamma, w=None,
                           max_episode_length=1000, verbose=False,
                           history=False, rng=None):
@@ -242,6 +251,10 @@ def semi_gradient_Sarsa0(env, state_features, n, epsilon, alpha, gamma, w=None,
 
     Returns:
         Learned weight vector. If ``history`` is true, returns ``(w, history)``.
+
+    Raises:
+        FloatingPointError: A NumPy operation overflows or is invalid during
+            training. Try a smaller step size and check the feature values.
     """
     
     assert gamma >= 0 and gamma <= 1, "Gamma must be in [0,1]"
@@ -331,6 +344,7 @@ def create_fourier_basis_coefs(dim, order):
     """
     return np.array(list(product(range(order+1), repeat=dim)))
     
+@np.errstate(over="raise", invalid="raise")
 def transformation_fourier_basis(min, max, order):
     """Create a Fourier basis feature transformation.
 
@@ -356,6 +370,7 @@ def transformation_fourier_basis(min, max, order):
     max = np.array(max)
     coefs = create_fourier_basis_coefs(len(min), order)
     
+    @np.errstate(over="raise", invalid="raise")
     def fourier_basis(s):
         # normalize state to [0,1]
         s = np.array(s)

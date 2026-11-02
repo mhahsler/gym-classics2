@@ -8,6 +8,9 @@ Callers supply ``state_features(state, env)``, returning a fixed-length NumPy
 vector with a leading intercept, such as ``[1, x, y]``. Policy features are
 constructed by ``state_action_features``; AC also uses the state features
 directly for its value approximation.
+
+Approximation calculations raise ``FloatingPointError`` on NumPy overflow or
+invalid operations. Check the step size and feature values if this occurs.
 """
 
 from tqdm import tqdm
@@ -20,6 +23,7 @@ from gym_classics2.algorithms.linear_approximation import state_action_features
 from gym_classics2.algorithms.schedules import ConstantSchedule
 from gym_classics2.utils import get_rng
 
+@np.errstate(over="raise", invalid="raise")
 def h(s, a, theta, env, state_features):
     """Compute the linear action preference ``h(s, a) = theta^T x(s, a)``.
 
@@ -36,6 +40,7 @@ def h(s, a, theta, env, state_features):
     """
     return np.dot(theta, state_action_features(s, a, env, state_features))
 
+@np.errstate(over="raise", invalid="raise")
 def pi(s, theta, env, state_features):
     """Compute the softmax policy ``pi(a | s)`` over linear preferences.
 
@@ -56,6 +61,7 @@ def pi(s, theta, env, state_features):
     exp_hs = np.exp(hs)
     return exp_hs / np.sum(exp_hs)
 
+@np.errstate(over="raise", invalid="raise")
 def sample_episode_approx_policy(
     env, pi, theta, state_features, max_episode_length=1000, rng=None
 ):
@@ -94,6 +100,7 @@ def sample_episode_approx_policy(
     
     return episode_data
 
+@np.errstate(over="raise", invalid="raise")
 def choose_action_w(env, pi, theta, state, state_features, rng=None):
     """Sample an action from a parameterized policy.
 
@@ -114,6 +121,7 @@ def choose_action_w(env, pi, theta, state, state_features, rng=None):
         env.action_space.n, p=pi(state, theta, env, state_features)
     )
 
+@np.errstate(over="raise", invalid="raise")
 def REINFORCE(
     env,
     state_features,
@@ -225,6 +233,7 @@ def REINFORCE(
     return theta
 
 
+@np.errstate(over="raise", invalid="raise")
 def AC(
     env,
     state_features,

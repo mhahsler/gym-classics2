@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Changed
+
+- Return a list of raw states from `env.states()` when `tabular=False`, in
+  state-ID order. Tabular environments continue to return a range of IDs.
+- Support `tabular=False` in `greedy_policy` and `greedy_policy_Q`, keeping
+  value tables and returned policy arrays indexed by state ID.
+- Rename the `epsilon_greedy_action` parameter `policy` to `Q` to reflect that
+  it contains action values. Keyword callers must now use `Q=`.
+- Raise `FloatingPointError` on NumPy overflow or invalid operations in
+  function-approximation algorithms and helpers, including eligibility traces,
+  policy gradients, and Fourier features. Restore callers' NumPy error settings
+  after each call.
+- Document policy helpers' compatibility with tabular, raw-state, and other
+  Gymnasium environments.
+
+### Fixed
+
+- Preserve gridworld plotting, animation, and policy-array conversion when
+  `env.states()` returns raw states.
+
 ## 1.0.4 - 2026-10-27
 
 ### Changed

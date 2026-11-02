@@ -2,6 +2,9 @@
 
 Callers provide a ``state_features(state, env)`` function that converts states
 to feature vectors.
+
+Approximation calculations raise ``FloatingPointError`` on NumPy overflow or
+invalid operations. Check the step size and feature values if this occurs.
 """
 
 import numpy as np
@@ -15,6 +18,7 @@ from gym_classics2.algorithms.linear_approximation import (
 from gym_classics2.algorithms.schedules import Schedule, ConstantSchedule
 from gym_classics2.utils import get_rng
 
+@np.errstate(over="raise", invalid="raise")
 def semi_gradient_Sarsa_lambda(
     env,
     state_features,

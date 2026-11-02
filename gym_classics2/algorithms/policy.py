@@ -8,6 +8,21 @@ Greedy policies can be derived from state values using model access or directly
 from action values. ``epsilon_greedy_action`` samples from action values rather
 than from a deterministic policy vector. Random choices accept a NumPy
 generator, an integer seed, or None through ``rng``.
+
+Environment compatibility:
+
+| Function | ``tabular=True`` | ``tabular=False`` | Other Gymnasium environments |
+| --- | --- | --- | --- |
+| ``random_policy`` | Yes; returns an array | Yes; returns a coordinate-keyed dictionary | Yes, with Discrete observations and actions |
+| ``greedy_policy`` | Yes | Yes; returns an array indexed by state ID | No; requires gym-classics2 model access |
+| ``greedy_policy_Q`` | Yes | Yes; returns an array indexed by state ID | Yes, with discrete actions and a supplied Q-table |
+| ``encode_policy`` | Yes, with a policy array | Yes, with a policy array; dictionaries unsupported | No; requires gym-classics2 action labels |
+| ``epsilon_greedy_action`` | Yes | Yes, using state IDs to index a Q-table | Yes; takes Q-values rather than an environment |
+| ``make_multidiscrete_policy`` | No; requires MultiDiscrete observations | Yes | Cannot convert arrays; an existing dictionary passes through with MultiDiscrete observations |
+
+For gym-classics2 environments with ``tabular=False``, access an array-based
+policy using ``policy[env.state2id(s)]``. Use unwrapped environments for helpers
+requiring the gym-classics2 API.
 """
 
 import numpy as np
@@ -112,28 +127,30 @@ def greedy_policy(V, env, discount=1, rng=None):
     return policy
 
 def greedy_policy_Q(Q, env, discount=1, rng=None):
-    """Create a greedy policy by maximizing action values in each state.
+    """Create a greedy tabular policy by maximizing action values in each state.
 
     Ties are broken uniformly at random when the policy is created.
 
     Args:
-        Q: Two-dimensional action-value array indexed by state and action.
-        env: Environment with discrete observation and action spaces.
+        Q: Two-dimensional action-value array indexed by state ID and action.
+        env: Environment with a discrete action space. Both ``tabular=True``
+            and ``tabular=False`` are supported for gym-classics2 environments.
         discount: Must be in ``[0, 1]`` but does not affect action selection;
             retained for API compatibility with ``greedy_policy``.
         rng: NumPy generator, integer seed, or None for random tie-breaking.
 
     Returns:
-        NumPy array of integer action IDs indexed by state ID.
+        NumPy array of integer action IDs indexed by state ID in either mode.
+        For a raw state ``s``, look up ``policy[env.state2id(s)]`` or convert
+        the array with ``make_multidiscrete_policy``.
     """
     
     assert isinstance(env.action_space, gym.spaces.Discrete)
-    assert isinstance(env.observation_space, gym.spaces.Discrete)
     assert 0.0 <= discount <= 1.0
 
     return random_argmax(Q, axis=1, rng=rng)
 
-def epsilon_greedy_action(policy, state=None, epsilon=0, rng=None):
+def epsilon_greedy_action(Q, state=None, epsilon=0, rng=None):
     """Select an epsilon-greedy action from tabular action values.
 
     With probability ``epsilon``, sample uniformly from all actions, including
@@ -141,10 +158,9 @@ def epsilon_greedy_action(policy, state=None, epsilon=0, rng=None):
     uniformly at random.
 
     Args:
-        policy: One-dimensional action-value vector, or a table indexed by
-            state and then action. Despite the name, this argument contains
-            action values, not the action IDs of a deterministic policy.
-        state: Current state index. If omitted, ``policy`` is treated as the
+        Q: One-dimensional action-value vector, or a table indexed by
+            state and then action.
+        state: Current state index. If omitted, ``Q`` is treated as the
             action-value vector for the current state.
         epsilon: Exploration probability in ``[0, 1]``.
         rng: NumPy generator, integer seed, or None for action sampling
@@ -157,25 +173,25 @@ def epsilon_greedy_action(policy, state=None, epsilon=0, rng=None):
     rng = get_rng(rng)
 
     if epsilon > 0 and rng.random() < epsilon:
-        return rng.integers(len(policy)) if state is None else rng.integers(len(policy[state]))
+        return rng.integers(len(Q)) if state is None else rng.integers(len(Q[state]))
     
     if state is None:
-        return random_argmax(policy, rng=rng)
+        return random_argmax(Q, rng=rng)
     else:
-        return random_argmax(policy[state], rng=rng)
+        return random_argmax(Q[state], rng=rng)
 
 def make_multidiscrete_policy(policy, env):
-    """Convert a policy indexed by state ID to a coordinate-keyed dictionary.
+    """Convert a policy indexed by state ID to a coordinate-keyed dictionary Only implemented for gym-classics2 environments.
 
     Args:
         policy: Deterministic policy vector indexed by state ID, or an existing
-            dictionary mapping coordinate tuples to action IDs.
+            dictionary mapping multi-discrete states (e.g., coordinate tuples) to action IDs.
         env: Environment with MultiDiscrete observations. Converting a vector
             requires a gym-classics2 environment providing ``states`` and
             ``id2state``.
 
     Returns:
-        Dictionary mapping coordinate tuples to integer action IDs. An input
+        Dictionary mapping multi-discrete states (coordinate tuples) to integer action IDs. An input
         dictionary is returned unchanged, without copying or validating entries.
 
     Raises:
