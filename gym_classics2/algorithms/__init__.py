@@ -9,7 +9,7 @@ The available families are grouped into submodules:
 - ``temporal_difference_learning``: tabular Sarsa(0) and Q-learning.
 - ``linear_approximation``: semi-gradient TD(0) prediction and Sarsa(0) control
   with feature-based value functions.
-- ``eligibility_traces``: semi-gradient Sarsa(lambda) control.
+- ``eligibility_traces``: tabular and semi-gradient Sarsa(lambda) control.
 - ``policy_gradient_methods``: REINFORCE and actor-critic with parameterized
   policies.
 

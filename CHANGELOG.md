@@ -4,12 +4,20 @@
 
 ### Added
 
+- Add tabular `Sarsa_lambda` (replacing eligibility traces) to
+  `gym_classics2.algorithms.eligibility_traces`.
 - Add `EmptyMazeGridworld`, registered as `EmptyMaze-v0`: a deterministic open
   grid with start and goal in opposite corners and configurable dimensions
   defaulting to `dims=(4, 4)`.
 
 ### Changed
 
+- Rename the `lam` parameter to `lambda_` in `semi_gradient_Sarsa_lambda`.
+  Keyword callers must now use `lambda_=`.
+- Rename the `gamma` parameter to `discount` in `semi_gradient_TD0`,
+  `semi_gradient_Sarsa0`, `semi_gradient_Sarsa_lambda`, `REINFORCE`, and `AC`
+  for consistency with the tabular algorithms. Keyword callers
+  must now use `discount=`.
 - Return a list of raw states from `env.states()` when `tabular=False`, in
   state-ID order. Tabular environments continue to return a range of IDs.
 - Support `tabular=False` in `greedy_policy` and `greedy_policy_Q`, keeping

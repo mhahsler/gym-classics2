@@ -127,7 +127,7 @@ def REINFORCE(
     state_features,
     n,
     alpha,
-    gamma,
+    discount,
     theta = None,
     max_episode_length=1000,
     verbose=False,
@@ -137,7 +137,7 @@ def REINFORCE(
     """Learn a linear softmax policy with episodic REINFORCE (no baseline).
 
     Sample an episode, then update ``theta`` at each visited state using
-    ``alpha(episode) * gamma**t * G_t * grad_log_pi``, where ``G_t`` is the
+    ``alpha(episode) * discount**t * G_t * grad_log_pi``, where ``G_t`` is the
     discounted return from step ``t`` to the end of the sampled trajectory.
 
     Args:
@@ -146,7 +146,7 @@ def REINFORCE(
             with a leading intercept for ``(state, env)``.
         n: Positive number of training episodes.
         alpha: Float step size or callable of the zero-based episode index.
-        gamma: Discount factor in ``[0, 1]``.
+        discount: Discount factor in ``[0, 1]``.
         theta: Initial NumPy policy parameter vector, updated in place. Its
             length must match ``state_action_features``. Defaults to zeros,
             giving a uniform initial policy.
@@ -168,7 +168,7 @@ def REINFORCE(
         bootstrapping a value for the final state.
     """
     
-    assert gamma >= 0 and gamma <= 1, "gamma must be in [0  ,1]"
+    assert discount >= 0 and discount <= 1, "discount must be in [0, 1]"
     assert n > 0, "number of episodes must be positive"
     assert max_episode_length > 0, "max episode length must be positive"
 
@@ -205,7 +205,7 @@ def REINFORCE(
             # update policy for each step in the episode using the return observed from that step on
             #print(episode_data[t])
         
-            G = np.sum([e[2] for e in episode_data[t:]] * (gamma ** np.arange(len(episode_data[t:]))))
+            G = np.sum([e[2] for e in episode_data[t:]] * (discount ** np.arange(len(episode_data[t:]))))
             if history and t == 0:
                 returns.append(G)   
 
@@ -221,7 +221,7 @@ def REINFORCE(
             if verbose: 
                 print (f"t: {t}, G: {G:.2f}, grad_log_pi: {grad_log_pi}")
             
-            theta += alpha(episode) * (gamma**t) * G * grad_log_pi
+            theta += alpha(episode) * (discount**t) * G * grad_log_pi
             
         if history:
             thetas.append(theta.copy())
@@ -240,7 +240,7 @@ def AC(
     n,
     alpha_policy,
     alpha_value,
-    gamma,
+    discount,
     max_episode_length=1000,
     verbose=False,
     history=False,
@@ -249,8 +249,8 @@ def AC(
     """Learn a linear softmax policy with one-step actor-critic.
 
     The critic approximates ``v(s) = w^T x(s)`` and learns from the TD error
-    ``delta = r + gamma * v(next_state) - v(state)``. The actor updates its
-    policy using ``alpha_policy(episode) * gamma**t * delta * grad_log_pi``.
+    ``delta = r + discount * v(next_state) - v(state)``. The actor updates its
+    policy using ``alpha_policy(episode) * discount**t * delta * grad_log_pi``.
     Both parameter vectors start at zero, giving a uniform initial policy.
 
     Args:
@@ -263,7 +263,7 @@ def AC(
             episode index.
         alpha_value: Float value-function step size or callable of the
             zero-based episode index.
-        gamma: Discount factor in ``[0, 1]``.
+        discount: Discount factor in ``[0, 1]``.
         max_episode_length: Positive maximum number of steps per episode.
         verbose: Print episode numbers instead of a progress bar.
         history: Whether to return training history alongside the parameters.
@@ -284,7 +284,7 @@ def AC(
         value of zero.
     """
     
-    assert gamma >= 0 and gamma <= 1, "gamma must be in [0  ,1]"
+    assert discount >= 0 and discount <= 1, "discount must be in [0, 1]"
     assert n > 0, "number of episodes must be positive"
     assert max_episode_length > 0, "max episode length must be positive"
 
@@ -335,7 +335,7 @@ def AC(
             next_state, r, done, _, _ = env.step(a)
             
             # use critic to calculate  TD error
-            td_error = r + gamma * np.dot(w, state_features(next_state, env)) - np.dot(w, state_features(state, env))
+            td_error = r + discount * np.dot(w, state_features(next_state, env)) - np.dot(w, state_features(state, env))
             
             # update critic
             w += alpha_value(episode) * td_error * state_features(state, env)
@@ -351,7 +351,7 @@ def AC(
             theta += alpha_policy(episode) * disc_factor * td_error * grad_log_pi
         
             G += disc_factor * r
-            disc_factor *= gamma      
+            disc_factor *= discount      
             state = next_state
             i += 1
             

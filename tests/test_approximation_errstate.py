@@ -22,7 +22,7 @@ from gym_classics2.algorithms.policy_gradient_methods import AC, REINFORCE, pi
     [
         (semi_gradient_TD0, {"policy": np.array([0])}),
         (semi_gradient_Sarsa0, {"epsilon": 0}),
-        (semi_gradient_Sarsa_lambda, {"epsilon": 0, "lam": 0.5}),
+        (semi_gradient_Sarsa_lambda, {"epsilon": 0, "lambda_": 0.5}),
         (REINFORCE, {}),
         (AC, {}),
     ],
@@ -46,9 +46,9 @@ def test_training_error_settings(learner, options, overflow):
         original_settings = np.geterr()
         if overflow:
             with pytest.raises(FloatingPointError, match="overflow"):
-                learner(env, features, n=2, gamma=0.9, **step_sizes, **options)
+                learner(env, features, n=2, discount=0.9, **step_sizes, **options)
         else:
-            result = learner(env, features, n=2, gamma=0.9, **step_sizes, **options)
+            result = learner(env, features, n=2, discount=0.9, **step_sizes, **options)
             parameters = result if learner is AC else (result,)
             assert all(np.isfinite(values).all() for values in parameters)
         assert np.geterr() == original_settings

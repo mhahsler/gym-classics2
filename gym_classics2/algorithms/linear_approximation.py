@@ -155,7 +155,7 @@ def semi_gradient_TD0(
     policy,
     n,
     alpha,
-    gamma,
+    discount,
     max_episode_length=1000,
     verbose=False,
 ):
@@ -173,14 +173,14 @@ def semi_gradient_TD0(
             converted to a dictionary indexed by coordinate states.
         n: Number of training episodes.
         alpha: Step size or schedule.
-        gamma: Discount factor in ``[0, 1]``.
+        discount: Discount factor in ``[0, 1]``.
         max_episode_length: Maximum number of steps per episode.
         verbose: Whether to print step-by-step diagnostics.
 
     Returns:
         Learned weight vector for the approximate value function.
     """
-    assert gamma >= 0 and gamma <= 1, "Gamma must be in [0,1]"
+    assert discount >= 0 and discount <= 1, "Discount must be in [0,1]"
     assert n > 0, "Number of episodes must be positive"
     assert max_episode_length > 0, "Max episode length must be positive"
     
@@ -211,7 +211,7 @@ def semi_gradient_TD0(
             if terminated:
                 w += alpha(episode) * (reward - v_hat(state, w, env, state_features)) * state_features(state, env)
             else: 
-                w += alpha(episode) * (reward + gamma * v_hat(next_state, w, env, state_features) - v_hat(state, w, env, state_features)) * state_features(state, env)
+                w += alpha(episode) * (reward + discount * v_hat(next_state, w, env, state_features) - v_hat(state, w, env, state_features)) * state_features(state, env)
              
             if verbose:
                 print (f"Episode {episode+1}, Step {i+1}: S={state}, A={action}, R={reward}, S'={next_state}, w={w}")
@@ -223,7 +223,7 @@ def semi_gradient_TD0(
 
 
 @np.errstate(over="raise", invalid="raise")
-def semi_gradient_Sarsa0(env, state_features, n, epsilon, alpha, gamma, w=None,
+def semi_gradient_Sarsa0(env, state_features, n, epsilon, alpha, discount, w=None,
                           max_episode_length=1000, verbose=False,
                           history=False, rng=None):
     """Run semi-gradient Sarsa(0) with function approximation for control.
@@ -241,7 +241,7 @@ def semi_gradient_Sarsa0(env, state_features, n, epsilon, alpha, gamma, w=None,
         n: Number of training episodes.
         epsilon: Exploration rate or schedule for the epsilon-greedy policy.
         alpha: Step size or schedule.
-        gamma: Discount factor in ``[0, 1]``.
+        discount: Discount factor in ``[0, 1]``.
         w: Initial action-value weight vector. If omitted, initialize it to zeros.
         max_episode_length: Maximum number of steps per episode.
         verbose: Whether to print step-by-step diagnostics.
@@ -257,7 +257,7 @@ def semi_gradient_Sarsa0(env, state_features, n, epsilon, alpha, gamma, w=None,
             training. Try a smaller step size and check the feature values.
     """
     
-    assert gamma >= 0 and gamma <= 1, "Gamma must be in [0,1]"
+    assert discount >= 0 and discount <= 1, "Discount must be in [0,1]"
     assert n > 0, "Number of episodes must be positive"
     assert max_episode_length > 0, "Max episode length must be positive"
 
@@ -307,7 +307,7 @@ def semi_gradient_Sarsa0(env, state_features, n, epsilon, alpha, gamma, w=None,
                 next_action = epsilon_greedy_action_w(
                     next_state, w, env, state_features, epsilon(episode), rng=rng
                 )
-                w += alpha(episode) * (reward + gamma * q_hat(next_state, next_action, w, env, state_features) - q_hat(state, action, w, env, state_features)) * x
+                w += alpha(episode) * (reward + discount * q_hat(next_state, next_action, w, env, state_features) - q_hat(state, action, w, env, state_features)) * x
 
             if verbose:
                 print (f"Episode {episode+1}, Step {i+1}: S={state}, A={action}, R={reward}, S'={next_state}, w={w}")
@@ -317,7 +317,7 @@ def semi_gradient_Sarsa0(env, state_features, n, epsilon, alpha, gamma, w=None,
             i += 1
             
             if history:
-                G += reward * (gamma ** (i-1))
+                G += reward * (discount ** (i-1))
             
         if history:
             ws.append(w.copy())

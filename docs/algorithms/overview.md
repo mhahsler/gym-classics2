@@ -12,12 +12,13 @@ agent and by the form of the value function.
 | Sarsa(0) | `temporal_difference_learning` | No | Discrete | Q array |
 | Q-learning | `temporal_difference_learning` | No | Discrete | Q array |
 | Semi-gradient TD/Sarsa | `linear_approximation` | No | Feature function | Weight array |
+| Sarsa($\lambda$) | `eligibility_traces` | No | Discrete | Q array |
 | Semi-gradient Sarsa($\lambda$) | `eligibility_traces` | No | Feature function | Weight array |
 | REINFORCE / actor-critic | `policy_gradient_methods` | No | Feature function | Parameter arrays |
 
 ## Common conventions
 
-- `discount` or `gamma` is the reward discount in `[0, 1]`.
+- `discount` is the reward discount in `[0, 1]`.
 - `n` is the number of sampled episodes for model-free algorithms.
 - `alpha` and `epsilon` may accept a scalar or a schedule where documented.
 - Randomized algorithms accept `rng`, either as a NumPy random generator or an

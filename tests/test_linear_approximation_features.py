@@ -24,7 +24,7 @@ def test_semi_gradient_td0_accepts_array_and_coordinate_policies(policy):
 
     try:
         weights = semi_gradient_TD0(
-            env, state_features, policy, n=1, alpha=0.5, gamma=1,
+            env, state_features, policy, n=1, alpha=0.5, discount=1,
             max_episode_length=1,
         )
         np.testing.assert_allclose(weights, [0.5])
@@ -61,7 +61,7 @@ def test_semi_gradient_sarsa_passes_features_through_the_algorithm():
         n=2,
         epsilon=0.1,
         alpha=0.01,
-        gamma=0.9,
+        discount=0.9,
         rng=42,
     )
 
@@ -88,7 +88,7 @@ def test_semi_gradient_sarsa_raises_at_invalid_weight_update(reward, feature, me
         original_settings = np.geterr()
         with pytest.raises(FloatingPointError, match=message):
             semi_gradient_Sarsa0(
-                env, state_features, n=1, epsilon=0, alpha=0.1, gamma=0.9,
+                env, state_features, n=1, epsilon=0, alpha=0.1, discount=0.9,
                 rng=42,
             )
         assert np.geterr() == original_settings

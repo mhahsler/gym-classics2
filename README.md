@@ -126,7 +126,7 @@ for details.
 | Monte Carlo | prediction, exploring-starts control | No |
 | Temporal difference | Sarsa(0), Q-learning | No |
 | Linear approximation | semi-gradient TD(0), Sarsa(0), Fourier features | No |
-| Eligibility traces | semi-gradient Sarsa($\lambda$) | No |
+| Eligibility traces | Sarsa($\lambda$), semi-gradient Sarsa($\lambda$) | No |
 | Policy gradient | REINFORCE, actor-critic | No |
 
 All model-free algorithms can also be used with standard Gymnasium
