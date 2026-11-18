@@ -37,7 +37,7 @@
 
 ::: gym_classics2.algorithms.policy_gradient_methods
 
-# Helpers
+## Helpers
 
 ## Policy helpers
 
