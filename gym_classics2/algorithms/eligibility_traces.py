@@ -22,23 +22,23 @@ from gym_classics2.algorithms.linear_approximation import (
 from gym_classics2.algorithms.schedules import Schedule, ConstantSchedule
 from gym_classics2.utils import get_rng, random_argmax
 
-def Sarsa_lambda(env, discount, alpha, epsilon, lambda_, Q=None, n=100, verbose=False,
+def Sarsa_lambda(env, discount, alpha, epsilon, lambda_, trace='replacing', Q=None, n=100, verbose=False,
                  history=False, rng=None):
     """Learn action values with tabular on-policy Sarsa(lambda).
 
-    After each step, every state-action pair is updated in proportion to its
-    eligibility trace, ``Q += alpha * delta * z``, and the traces then decay by
-    ``discount * lambda_``. The trace of the visited pair ``(s, a)`` can be updated
-    in three ways:
-
+    After each step, traces are decayed by ``discount * lambda_``.  Then 
+    the trace for the current state/action combination is updated. There are several different 
+    types of traces that update race of the visited pair ``(s, a)`` in a slightly different way:
+    
     - accumulating: ``z[s, a] += 1``. Revisits add up, so traces can exceed 1
       and become unstable for large ``alpha`` or ``lambda_``.
     - replacing: ``z[s, a] = 1``. Traces are capped at 1, which often works
       better when states are revisited.
     - dutch: ``z[s, a] = (1 - alpha) * z[s, a] + 1``. A compromise between the
       two, used by true online Sarsa(lambda).
-
-    This implementation uses **replacing traces**.
+    
+    Finally, every state-action pair is updated in proportion to its
+    eligibility trace, ``Q += alpha * delta * z``.
 
     Args:
         env: Gymnasium environment with discrete observation and action spaces.
@@ -47,6 +47,8 @@ def Sarsa_lambda(env, discount, alpha, epsilon, lambda_, Q=None, n=100, verbose=
         epsilon: Scalar exploration probability or ``Schedule`` evaluated once
             per episode.
         lambda_: Trace-decay parameter in ``[0, 1]``. ``lambda_=0`` is Sarsa(0).
+        trace: Trace type, ``'accumulating'``, ``'replacing'`` (default), or
+            ``'dutch'``.
         Q: Optional initial action-value array shaped
             ``(env.observation_space.n, env.action_space.n)``. The array is updated
             in place.
@@ -55,17 +57,19 @@ def Sarsa_lambda(env, discount, alpha, epsilon, lambda_, Q=None, n=100, verbose=
         history: Retain discounted episode returns and episode lengths.
         rng: NumPy generator or integer seed for exploration and tie-breaking.
 
+
     Returns:
         The learned Q array. If ``history=True``, returns ``(Q, history_dict)``;
         the dictionary contains ``returns`` and ``ep_lens``.
 
     Raises:
-        AssertionError: If the observation space is not discrete or ``discount``
-            or ``lambda_`` is outside ``[0, 1]``.
+        AssertionError: If the observation space is not discrete, ``discount``
+            or ``lambda_`` is outside ``[0, 1]``, or ``trace`` is unknown.
     """
     assert isinstance(env.observation_space, gym.spaces.Discrete), "Tabular methods require discrete state space."
     assert 0 <= discount <= 1, "discount must be in [0, 1]"
     assert 0 <= lambda_ <= 1, "lambda_ must be in [0, 1]"
+    assert trace in ('accumulating', 'replacing', 'dutch'), f"unknown trace type: {trace}"
 
     rng = get_rng(rng)
 
@@ -100,9 +104,13 @@ def Sarsa_lambda(env, discount, alpha, epsilon, lambda_, Q=None, n=100, verbose=
             delta = target - Q[s, a]
 
             z *= discount * lambda_
-            z[s, a] = 1
+            if trace == 'accumulating':
+                z[s, a] += 1
+            elif trace == 'replacing':
+                z[s, a] = 1
+            else:  # dutch
+                z[s, a] = (1 - alpha(i)) * z[s, a] + 1
             Q += alpha(i) * delta * z
-         
 
             if verbose:
                 print(f"{t} - sarsa(lambda): {s},{a},{r},{sp},{ap}, delta: {delta}")

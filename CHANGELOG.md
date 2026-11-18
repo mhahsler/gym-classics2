@@ -4,8 +4,9 @@
 
 ### Added
 
-- Add tabular `Sarsa_lambda` (replacing eligibility traces) to
-  `gym_classics2.algorithms.eligibility_traces`.
+- Add tabular `Sarsa_lambda` to `gym_classics2.algorithms.eligibility_traces`
+  with a `trace` parameter (`'accumulating'`, `'replacing'` (default), or
+  `'dutch'`).
 - Add `EmptyMazeGridworld`, registered as `EmptyMaze-v0`: a deterministic open
   grid with start and goal in opposite corners and configurable dimensions
   defaulting to `dims=(4, 4)`.

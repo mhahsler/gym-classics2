@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 import gymnasium as gym
 import numpy as np
+import pytest
 
 from gym_classics2.algorithms.policy import epsilon_greedy_action, random_policy
 from gym_classics2.algorithms.temporal_difference_learning import Q_learning
@@ -69,3 +70,18 @@ def test_sarsa_lambda_is_reproducible_and_traces_spread_updates():
     Q0 = Sarsa_lambda(Walk5(), 1, 0.5, 0.5, lambda_=0, n=1, rng=2)
     Q9 = Sarsa_lambda(Walk5(), 1, 0.5, 0.5, lambda_=0.9, n=1, rng=2)
     assert np.count_nonzero(Q9) >= np.count_nonzero(Q0)
+
+
+def test_sarsa_lambda_trace_types():
+    from gym_classics2.algorithms.eligibility_traces import Sarsa_lambda
+
+    def run(trace):
+        return Sarsa_lambda(Walk5(), 0.9, 0.2, 0.3, lambda_=0.8, n=20, rng=3, trace=trace)
+
+    Qs = {t: run(t) for t in ('accumulating', 'replacing', 'dutch')}
+    np.testing.assert_array_equal(Qs['replacing'],
+                                  Sarsa_lambda(Walk5(), 0.9, 0.2, 0.3, lambda_=0.8, n=20, rng=3))
+    assert not np.array_equal(Qs['accumulating'], Qs['replacing'])
+    assert not np.array_equal(Qs['dutch'], Qs['replacing'])
+    with pytest.raises(AssertionError):
+        run('bogus')

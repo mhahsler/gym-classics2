@@ -322,7 +322,9 @@ def AC(
         state, _ = env.reset()
         done = False
         i = 0
-        G = 0.0
+        
+        if history:
+            G = 0.0
         
         while not done and  i < max_episode_length:
             # use actor to determine next action
@@ -350,7 +352,9 @@ def AC(
             )
             theta += alpha_policy(episode) * disc_factor * td_error * grad_log_pi
         
-            G += disc_factor * r
+            if history:
+                G += disc_factor * r
+            
             disc_factor *= discount      
             state = next_state
             i += 1
