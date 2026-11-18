@@ -6,7 +6,7 @@
       show_root_heading: false
       show_source: false
 
-## Base environment
+## Concrete environments
 
 ::: gym_classics2.envs.abstract.base_env.BaseEnv
     options:
@@ -21,11 +21,7 @@
         - id2action
         - model
 
-## Linear walk
-
 ::: gym_classics2.envs.abstract.linear_walk.LinearWalk
-
-## Gridworld
 
 ::: gym_classics2.envs.abstract.gridworld.Gridworld
     options:
@@ -38,7 +34,6 @@
         - image
         - image_list
 
-## Noisy gridworld
 
 ::: gym_classics2.envs.abstract.noisy_gridworld.NoisyGridworld
 
