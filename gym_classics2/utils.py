@@ -1,3 +1,5 @@
+"""Utilities used in gym-classics2 algorithms and policies."""
+
 import numpy as np
 
 

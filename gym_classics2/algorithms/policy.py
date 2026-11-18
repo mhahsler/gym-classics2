@@ -1,4 +1,7 @@
-"""Create, convert, and select actions from tabular policies.
+"""
+# Tabular policies
+
+Create, convert, and select actions from tabular policies.
 
 A deterministic tabular policy is a vector of integer action IDs indexed by
 state ID. For gym-classics2 environments with MultiDiscrete observations,

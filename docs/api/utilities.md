@@ -1,13 +1,13 @@
 # Utility API
 
-## Performance plots
+## Utilities for algorithms
+
+::: gym_classics2.utils
+
+## Performance and learning curves
 
 ::: gym_classics2.performance
 
 ## Gridworld animation
 
 ::: gym_classics2.animation
-
-## General utilities
-
-::: gym_classics2.utils

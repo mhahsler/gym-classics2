@@ -1,3 +1,6 @@
+"""Utilities for analyzing and visualizing performance of reinforcement learning agents including visualizations for learning curves from the history
+information returned by the gym-classics2 algorithms."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -40,7 +43,7 @@ def plot_returns(returns, y_label = "Episode Return", title = "", window_size = 
 
     Args:
         returns: One-dimensional sequence of returns, usually one value per
-            episode.
+            episode. This can be produced by running a gym-classics2 algorithm with ``history=True``.
         y_label: Label for the y-axis.
         title: Plot title.
         window_size: Number of episodes in the moving-average window.
@@ -75,7 +78,7 @@ def plot_episode_lengths(ep_lens, y_label = "Episode Length", title = "", window
 
     Args:
         ep_lens: One-dimensional sequence of episode lengths, usually one
-            value per episode.
+            value per episode. This can be produced by running a gym-classics2 algorithm with ``history=True``.
         y_label: Label for the y-axis.
         title: Plot title.
         window_size: Number of episodes in the moving-average window.

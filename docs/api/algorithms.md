@@ -17,10 +17,6 @@
         - policy_improvement
         - policy_iteration
 
-## Policy helpers
-
-::: gym_classics2.algorithms.policy
-
 ## Monte Carlo methods
 
 ::: gym_classics2.algorithms.monte_carlo_methods
@@ -40,6 +36,12 @@
 ## Policy-gradient methods
 
 ::: gym_classics2.algorithms.policy_gradient_methods
+
+# Helpers
+
+## Policy helpers
+
+::: gym_classics2.algorithms.policy
 
 ## Schedules
 
